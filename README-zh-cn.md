@@ -11,6 +11,7 @@
 | 🧪 [test-driven-debugging](.opencode/skills/test-driven-debugging/SKILL.md) | 系统化修复失败测试 | 232 |
 | 🔒 [code-review-guardian](.opencode/skills/code-review-guardian/SKILL.md) | 全面代码审查 | 307 |
 | 🔧 [safe-refactoring](.opencode/skills/safe-refactoring/SKILL.md) | 零风险代码重构 | 376 |
+| 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | 算法复杂度优化 | 409 |
 | 💰 [tokensaver](.opencode/skills/tokensaver/SKILL.md) | 上下文优化策略 | 160 |
 
 ## 快速开始
@@ -60,6 +61,7 @@ cp -r .opencode/skills/* ~/.config/opencode/skills/
 skill({ name: "test-driven-debugging" })
 skill({ name: "code-review-guardian" })
 skill({ name: "safe-refactoring" })
+skill({ name: "code-complexity-optimizer" })
 skill({ name: "tokensaver" })
 ```
 
@@ -75,6 +77,7 @@ skill({ name: "tokensaver" })
 | "测试X失败了" | test-driven-debugging |
 | "审查这个PR" | code-review-guardian |
 | "重构模块Y" | safe-refactoring |
+| "代码优化" | code-complexity-optimizer |
 | "上下文太大了" | tokensaver |
 
 ## 技能概要
@@ -117,6 +120,24 @@ skill({ name: "tokensaver" })
 ```
 
 **何时使用：** 改进代码结构时
+
+### 🚀 code-complexity-optimizer（代码复杂度优化）
+
+```
+流程：
+1. ANALYZE 分析 → 确定当前时间/空间复杂度
+2. CLARIFY 明确 → 询问优化目标（时间、空间或平衡）
+3. STRATEGIZE 策略 → 选择优化方法
+4. EXECUTE 执行 → 应用最小改动
+5. VERIFY 验证 → 确认正确性和复杂度改进
+
+优化策略：
+- 时间优化：哈希表、记忆化、二分查找、提前退出
+- 空间优化：原地操作、迭代器、流式处理
+- 平衡优化：最优数据结构、算法替换
+```
+
+**何时使用：** 基于复杂度优化算法
 
 ### 💰 tokensaver（Token节省）
 

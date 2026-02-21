@@ -11,6 +11,7 @@
 | 🧪 [test-driven-debugging](.opencode/skills/test-driven-debugging/SKILL.md) | Fix failing tests systematically | 232 |
 | 🔒 [code-review-guardian](.opencode/skills/code-review-guardian/SKILL.md) | Comprehensive code review | 307 |
 | 🔧 [safe-refactoring](.opencode/skills/safe-refactoring/SKILL.md) | Risk-free code refactoring | 376 |
+| 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | Algorithm complexity optimization | 409 |
 | 💰 [tokensaver](.opencode/skills/tokensaver/SKILL.md) | Context optimization strategies | 160 |
 
 ## Quick Start
@@ -60,6 +61,7 @@ In OpenCode, skills are loaded by calling:
 skill({ name: "test-driven-debugging" })
 skill({ name: "code-review-guardian" })
 skill({ name: "safe-refactoring" })
+skill({ name: "code-complexity-optimizer" })
 skill({ name: "tokensaver" })
 ```
 
@@ -75,6 +77,7 @@ skill({ name: "tokensaver" })
 | "Test X is failing" | test-driven-debugging |
 | "Review this PR" | code-review-guardian |
 | "Refactor module Y" | safe-refactoring |
+| "代码优化" / "Optimize this code" | code-complexity-optimizer |
 | "Context is too large" | tokensaver |
 
 ## Skill Summaries
@@ -117,6 +120,24 @@ Principles:
 ```
 
 **When to use:** Improving code structure
+
+### 🚀 code-complexity-optimizer
+
+```
+Process:
+1. ANALYZE → Determine current time/space complexity
+2. CLARIFY → Ask optimization goal (time, space, or balanced)
+3. STRATEGIZE → Select optimization approach
+4. EXECUTE → Apply minimal changes
+5. VERIFY → Confirm correctness and complexity improvement
+
+Optimization strategies:
+- Time: Hash maps, memoization, binary search, early exit
+- Space: In-place, iterators, streaming
+- Balanced: Optimal data structures, algorithm replacement
+```
+
+**When to use:** Optimizing algorithms based on complexity
 
 ### 💰 tokensaver
 
