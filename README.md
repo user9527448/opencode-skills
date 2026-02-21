@@ -21,7 +21,7 @@ Clone or copy to your project:
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/opencode-skills.git
+git clone https://github.com/user9527448/opencode-skills.git
 cp -r opencode-skills/.opencode/skills/* your-project/.opencode/skills/
 
 # Or copy directly
