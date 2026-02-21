@@ -11,7 +11,8 @@
 | 🧪 [test-driven-debugging](.opencode/skills/test-driven-debugging/SKILL.md) | Fix failing tests systematically | 232 |
 | 🔒 [code-review-guardian](.opencode/skills/code-review-guardian/SKILL.md) | Comprehensive code review | 307 |
 | 🔧 [safe-refactoring](.opencode/skills/safe-refactoring/SKILL.md) | Risk-free code refactoring | 376 |
-| 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | Algorithm complexity optimization | 409 |
+| 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | Algorithm complexity optimization | 357 |
+| 📁 [skill-structure-organizer](.opencode/skills/skill-structure-organizer/SKILL.md) | Restructure skills to modular format | 220 |
 | 💰 [tokensaver](.opencode/skills/tokensaver/SKILL.md) | Context optimization strategies | 160 |
 
 ## Quick Start
@@ -62,6 +63,7 @@ skill({ name: "test-driven-debugging" })
 skill({ name: "code-review-guardian" })
 skill({ name: "safe-refactoring" })
 skill({ name: "code-complexity-optimizer" })
+skill({ name: "skill-structure-organizer" })
 skill({ name: "tokensaver" })
 ```
 
@@ -78,6 +80,7 @@ skill({ name: "tokensaver" })
 | "Review this PR" | code-review-guardian |
 | "Refactor module Y" | safe-refactoring |
 | "代码优化" / "Optimize this code" | code-complexity-optimizer |
+| "Skill too long" / "Restructure skill" | skill-structure-organizer |
 | "Context is too large" | tokensaver |
 
 ## Skill Summaries
@@ -138,6 +141,25 @@ Optimization strategies:
 ```
 
 **When to use:** Optimizing algorithms based on complexity
+
+### 📁 skill-structure-organizer
+
+```
+Process:
+1. ANALYZE → Count lines, identify extraction targets
+2. CREATE → mkdir references/ examples/ scripts/
+3. EXTRACT → Languages, paradigms, examples to subdirs
+4. UPDATE → Add metadata.references, reduce SKILL.md
+5. DOCUMENT → Create README.md
+6. VERIFY → Check all checklists
+
+When to restructure:
+- SKILL.md > 500 lines
+- Multiple language/paradigm guides
+- Helper scripts present
+```
+
+**When to use:** Restructuring skills to modular format
 
 ### 💰 tokensaver
 

@@ -386,6 +386,188 @@ Practical Application → Anti-Patterns → Quick Reference
 
 ---
 
+## Advanced File Structure (Recommended for Complex Skills)
+
+When a skill exceeds 500-800 lines or requires templates/scripts/references, use this modular structure:
+
+### Directory Template
+
+```
+.opencode/skills/<skill-name>/
+├── SKILL.md                    # Core instructions (~300-400 lines)
+│                               # Contains: triggers, core principle, workflow, quick reference
+│
+├── references/                 # Detailed reference guides
+│   ├── languages/              # Language-specific guides
+│   │   ├── python.md
+│   │   ├── javascript.md
+│   │   └── ...
+│   └── paradigms/              # Paradigm-specific patterns
+│       ├── oop.md
+│       ├── functional.md
+│       └── ...
+│
+├── examples/                   # Optimization/example patterns
+│   ├── time-optimization.md
+│   ├── space-optimization.md
+│   └── anti-patterns.md
+│
+├── templates/                  # Reusable templates
+│   └── verification.py
+│
+├── scripts/                    # Executable helper scripts
+│   ├── analyze.py
+│   └── benchmark.py
+│
+└── README.md                   # Skill documentation
+```
+
+### When to Use Advanced Structure
+
+| Condition | Simple Structure | Advanced Structure |
+|-----------|------------------|-------------------|
+| SKILL.md lines | < 400 | > 500 |
+| Language guides needed | No | Yes (multiple) |
+| Helper scripts | No | Yes |
+| Code examples | Few inline | Many in separate files |
+| Templates | None | Reusable templates |
+
+### SKILL.md Structure for Advanced Skills
+
+Keep SKILL.md focused on the core workflow:
+
+```markdown
+---
+name: skill-name
+description: Brief description
+metadata:
+  references:
+    languages: references/languages/
+    paradigms: references/paradigms/
+    examples: examples/
+    templates: templates/
+    scripts: scripts/
+---
+
+# Skill Title
+
+## Overview
+## Trigger Conditions
+## The Iron Law
+## Phase 1: ...
+## Phase 2: ...
+## Phase 3: ...
+## Quick Reference Card
+## Tool Integration
+## Reference Files (table pointing to subdirectories)
+## Integration Notes
+## Red Flags
+## Limitations
+```
+
+### Benefits of Advanced Structure
+
+| Benefit | Description |
+|---------|-------------|
+| **Focused SKILL.md** | Agent follows core workflow more easily |
+| **On-demand loading** | Detailed guides loaded only when needed |
+| **Maintainability** | Each file has single responsibility |
+| **Extensibility** | Easy to add new languages/paradigms |
+| **Reusability** | Scripts and templates can be imported |
+
+---
+
+## Case Study: code-complexity-optimizer Restructuring
+
+### Before (Single File)
+
+```
+code-complexity-optimizer/
+├── SKILL.md          (721 lines)
+├── SKILL-zh-cn.md    (721 lines)
+├── analyze.py        (424 lines)
+└── benchmark.py      (301 lines)
+```
+
+**Problems:**
+- SKILL.md too long (721 lines > 400 line guideline)
+- Language-specific guides buried in single file
+- No separation between core workflow and references
+
+### After (Modular Structure)
+
+```
+code-complexity-optimizer/
+├── SKILL.md                    (357 lines) ← 50% reduction
+├── SKILL-zh-cn.md              (357 lines)
+├── README.md                   (144 lines)
+│
+├── references/
+│   ├── languages/
+│   │   ├── python.md           (76 lines)
+│   │   ├── javascript.md       (89 lines)
+│   │   ├── java.md             (72 lines)
+│   │   ├── cpp.md              (77 lines)
+│   │   └── go.md               (74 lines)
+│   └── paradigms/
+│       ├── oop.md              (69 lines)
+│       ├── functional.md       (68 lines)
+│       ├── reactive.md         (73 lines)
+│       └── concurrent.md       (91 lines)
+│
+├── examples/
+│   ├── time-optimization.md    (95 lines)
+│   ├── space-optimization.md   (91 lines)
+│   └── anti-patterns.md        (123 lines)
+│
+├── templates/
+│   └── verification.py         (226 lines)
+│
+└── scripts/
+    ├── analyze.py              (424 lines)
+    └── benchmark.py            (301 lines)
+```
+
+### Restructuring Process
+
+**Step 1: Analyze Current SKILL.md**
+- Identify sections that can be extracted
+- Group by category (languages, paradigms, examples)
+
+**Step 2: Create Directory Structure**
+```bash
+mkdir -p references/languages references/paradigms
+mkdir -p examples templates scripts
+```
+
+**Step 3: Extract Content**
+- Language guides → `references/languages/*.md`
+- Paradigm guides → `references/paradigms/*.md`
+- Optimization patterns → `examples/*.md`
+- Move scripts → `scripts/`
+
+**Step 4: Update SKILL.md**
+- Keep core workflow (Phase 1-5)
+- Add reference table pointing to subdirectories
+- Add metadata `references:` for auto-discovery
+
+**Step 5: Create README.md**
+- Overview and features
+- Installation instructions
+- Quick reference
+- Links to detailed guides
+
+### Results
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| SKILL.md lines | 721 | 357 | **-50%** |
+| Total files | 4 | 18 | +14 |
+| Modularity | Low | High | ✅ |
+| Maintainability | Low | High | ✅ |
+
+---
+
 ## References
 
 ### Official Documentation
@@ -406,4 +588,5 @@ Practical Application → Anti-Patterns → Quick Reference
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-02-21 | Added advanced file structure template and case study |
 | 1.0.0 | 2026-02-21 | Initial research compilation |

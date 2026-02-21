@@ -11,7 +11,8 @@
 | 🧪 [test-driven-debugging](.opencode/skills/test-driven-debugging/SKILL.md) | 系统化修复失败测试 | 232 |
 | 🔒 [code-review-guardian](.opencode/skills/code-review-guardian/SKILL.md) | 全面代码审查 | 307 |
 | 🔧 [safe-refactoring](.opencode/skills/safe-refactoring/SKILL.md) | 零风险代码重构 | 376 |
-| 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | 算法复杂度优化 | 409 |
+| 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | 算法复杂度优化 | 357 |
+| 📁 [skill-structure-organizer](.opencode/skills/skill-structure-organizer/SKILL.md) | 重构技能为模块化格式 | 220 |
 | 💰 [tokensaver](.opencode/skills/tokensaver/SKILL.md) | 上下文优化策略 | 160 |
 
 ## 快速开始
@@ -62,6 +63,7 @@ skill({ name: "test-driven-debugging" })
 skill({ name: "code-review-guardian" })
 skill({ name: "safe-refactoring" })
 skill({ name: "code-complexity-optimizer" })
+skill({ name: "skill-structure-organizer" })
 skill({ name: "tokensaver" })
 ```
 
@@ -78,6 +80,7 @@ skill({ name: "tokensaver" })
 | "审查这个PR" | code-review-guardian |
 | "重构模块Y" | safe-refactoring |
 | "代码优化" | code-complexity-optimizer |
+| "技能太长" / "重组技能" | skill-structure-organizer |
 | "上下文太大了" | tokensaver |
 
 ## 技能概要
@@ -138,6 +141,25 @@ skill({ name: "tokensaver" })
 ```
 
 **何时使用：** 基于复杂度优化算法
+
+### 📁 skill-structure-organizer（技能结构组织）
+
+```
+流程：
+1. ANALYZE 分析 → 统计行数，识别提取目标
+2. CREATE 创建 → mkdir references/ examples/ scripts/
+3. EXTRACT 提取 → 语言、范式、示例到子目录
+4. UPDATE 更新 → 添加 metadata.references，精简 SKILL.md
+5. DOCUMENT 文档 → 创建 README.md
+6. VERIFY 验证 → 检查所有清单项
+
+何时重组：
+- SKILL.md > 500 行
+- 多种语言/范式指南
+- 有辅助脚本
+```
+
+**何时使用：** 将技能重组为模块化格式
 
 ### 💰 tokensaver（Token节省）
 
