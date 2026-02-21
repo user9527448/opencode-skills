@@ -1,237 +1,248 @@
 ---
 name: code-review-guardian
-description: Comprehensive code review checklist - security, performance, maintainability, and correctness
+description: OWASP-aligned comprehensive code review - security, correctness, performance, maintainability, testing, documentation
 license: MIT
 compatibility: opencode
 ---
 
 # Code Review Guardian
 
-Review code like a senior engineer, not a spell checker.
-
-## When to Use
-
-- Reviewing pull requests
-- After completing a feature
-- Before merging to main branch
-- When asked to review code changes
+Review code like a senior engineer. Security first, always.
 
 ---
 
-## The Problem with Surface-Level Reviews
+## 🚨 When to Activate This Skill
 
-```
-❌ Bad: "LGTM" or only commenting on formatting
-✅ Good: Systematic review across all dimensions
-```
-
-Surface reviews miss bugs, security issues, and design problems.
+| Trigger | Priority |
+|---------|----------|
+| Pull request review | HIGH |
+| Pre-merge check | HIGH |
+| Security audit | CRITICAL |
+| Post-implementation review | MEDIUM |
+| Code quality check | MEDIUM |
 
 ---
 
-## Review Dimensions
+## Review Order (Critical → Nice-to-have)
 
-Review in this order - from most critical to least:
+```
+1. 🔒 Security     → ALWAYS FIRST
+2. 🎯 Correctness  → Does it work?
+3. ⚡ Performance   → Any bottlenecks?
+4. 🧹 Maintainability → Readable? DRY?
+5. 🧪 Testing      → Covered?
+6. 📚 Documentation → Updated?
+```
 
-### 1. 🔒 Security (CRITICAL - Review First)
+---
 
-**Check for:**
+## 1. 🔒 Security Review (ALWAYS FIRST)
 
-| Vulnerability | What to Look For |
-|---------------|------------------|
-| SQL Injection | String concatenation in queries |
-| XSS | Unescaped user input in HTML |
-| CSRF | Missing tokens on state changes |
-| Secrets in Code | API keys, passwords in source |
-| Path Traversal | User input in file paths |
-| Command Injection | User input in shell commands |
+### OWASP Top 10 Quick Check
 
-**Red flags:**
+| # | Risk | What to Look For | Severity |
+|---|------|------------------|----------|
+| A01 | Broken Access Control | Missing auth checks, IDOR | 🔴 Critical |
+| A02 | Crypto Failures | Weak algorithms, hardcoded keys | 🔴 Critical |
+| A03 | Injection | String concat in SQL/commands | 🔴 Critical |
+| A04 | Insecure Design | Missing security controls | 🟡 High |
+| A05 | Misconfiguration | Default creds, verbose errors | 🟡 High |
+| A06 | Vulnerable Components | Outdated packages | 🟡 High |
+| A07 | Auth Failures | Weak passwords, missing MFA | 🔴 Critical |
+| A08 | Data Integrity | Unvalidated inputs | 🟡 High |
+| A09 | Logging Failures | Missing audit trails | 🟡 High |
+| A10 | SSRF | User input in URLs | 🟡 High |
 
+### Security Code Patterns
+
+**❌ Dangerous Patterns:**
 ```javascript
-// ❌ Dangerous patterns
+// SQL Injection
 query = "SELECT * FROM users WHERE id = " + userId
+
+// Command Injection
 exec(userInput)
+
+// Path Traversal
 fs.readFile(path + userInput)
+
+// XSS
 innerHTML = userInput
+
+// Hardcoded secrets
+const apiKey = "sk-abc123..."
 ```
 
+**✅ Safe Patterns:**
 ```javascript
-// ✅ Safe patterns
-query = db.query("SELECT * FROM users WHERE id = ?", [userId])
-// Use parameterized queries, escaping, allowlists
+// Parameterized query
+db.query("SELECT * FROM users WHERE id = ?", [userId])
+
+// Allowlist validation
+const allowed = ['option1', 'option2'];
+if (!allowed.includes(input)) throw new Error();
+
+// Environment variables
+const apiKey = process.env.API_KEY
+
+// Output encoding
+textContent = escapeHtml(userInput)
 ```
 
-**Security checklist:**
+### Security Checklist
 
-- [ ] All user inputs are validated
-- [ ] No hardcoded secrets/credentials
-- [ ] Authentication/authorization present
-- [ ] Sensitive data encrypted
+- [ ] All user inputs validated and sanitized
+- [ ] No hardcoded credentials or secrets
+- [ ] Authentication present on protected routes
+- [ ] Authorization checked before operations
+- [ ] Sensitive data encrypted at rest and in transit
 - [ ] Rate limiting on public endpoints
+- [ ] CORS configured properly
+- [ ] Security headers present (CSP, HSTS, X-Frame-Options)
+- [ ] Dependencies checked for vulnerabilities
 
 ---
 
-### 2. 🎯 Correctness (CRITICAL)
+## 2. 🎯 Correctness Review
 
-**Verify:**
+### Logic Verification
 
-| Aspect | Questions to Ask |
-|--------|------------------|
-| Logic | Does this do what it's supposed to do? |
-| Edge Cases | What happens with null/empty/boundary values? |
-| Error Handling | Are errors caught and handled properly? |
-| Race Conditions | What if this runs concurrently? |
-| Data Integrity | Can this corrupt data? |
+| Check | Questions |
+|-------|-----------|
+| Happy path | Does the main flow work? |
+| Edge cases | null, empty, boundary values? |
+| Error handling | All errors caught and handled? |
+| Race conditions | Concurrent access safe? |
+| Data integrity | Can this corrupt data? |
 
-**Correctness checklist:**
+### Correctness Checklist
 
-- [ ] Happy path works correctly
-- [ ] Error cases are handled
-- [ ] Null/undefined inputs handled
-- [ ] Boundary conditions considered
-- [ ] No off-by-one errors
+- [ ] Logic matches requirements
+- [ ] All branches reachable and tested
+- [ ] Null/undefined handled
+- [ ] Empty arrays/objects handled
+- [ ] Boundary conditions checked
+- [ ] Error messages helpful
+- [ ] No silent failures
 
 ---
 
-### 3. ⚡ Performance (IMPORTANT)
+## 3. ⚡ Performance Review
 
-**Watch for:**
+### Common Performance Issues
 
-| Issue | Pattern | Fix |
-|-------|---------|-----|
-| N+1 Queries | Query in loop | Batch query |
-| Memory Leak | Unclosed resources | Use cleanup/finally |
-| Unnecessary Work | Redundant calculations | Cache/memoize |
-| Large Payloads | Returning too much data | Pagination/projection |
-| Blocking I/O | Sync operations | Async patterns |
+| Issue | Pattern | Detection |
+|-------|---------|-----------|
+| N+1 Queries | Query in loop | Look for `for...await` |
+| Memory Leak | Unclosed resources | Missing `finally` or cleanup |
+| Unnecessary Work | Redundant calculations | Duplicate function calls |
+| Large Payloads | Too much data | Check response size |
+| Blocking I/O | Sync operations | `readFileSync`, `execSync` |
 
-**Performance red flags:**
+### Performance Patterns
 
+**❌ N+1 Query:**
 ```javascript
-// ❌ N+1 query pattern
 for (const user of users) {
   const posts = await db.query(`SELECT * FROM posts WHERE user_id = ?`, [user.id])
 }
+```
 
-// ✅ Batch query
+**✅ Batch Query:**
+```javascript
+const userIds = users.map(u => u.id)
 const posts = await db.query(`SELECT * FROM posts WHERE user_id IN (?)`, [userIds])
 ```
 
-**Performance checklist:**
+### Performance Checklist
 
 - [ ] No N+1 queries
-- [ ] No unnecessary loops/iterations
+- [ ] No unnecessary loops
 - [ ] Resources properly released
 - [ ] Caching considered for hot paths
-- [ ] Database queries optimized
+- [ ] Database queries use indexes
+- [ ] Pagination for large lists
+- [ ] Lazy loading where appropriate
 
 ---
 
-### 4. 🧹 Maintainability (IMPORTANT)
+## 4. 🧹 Maintainability Review
 
-**Evaluate:**
+### Code Quality Metrics
 
 | Aspect | Good | Bad |
 |--------|------|-----|
-| Naming | `getUserById` | `get` or `func1` |
-| Function Length | <30 lines | >100 lines |
-| Complexity | Single responsibility | Does multiple things |
-| DRY | Reused logic extracted | Copy-pasted code |
-| Comments | Explain "why" | Explain "what" code does |
+| Naming | `getUserById` | `get`, `func1` |
+| Length | <30 lines | >100 lines |
+| Complexity | Single responsibility | Multiple concerns |
+| DRY | Extracted utilities | Copy-paste code |
+| Comments | Explain "why" | Explain "what" |
 
-**Maintainability checklist:**
+### Maintainability Checklist
 
 - [ ] Names are self-documenting
 - [ ] Functions do one thing
-- [ ] No deep nesting (>3 levels)
+- [ ] Nesting ≤3 levels
 - [ ] Magic numbers are constants
 - [ ] Complex logic has comments
+- [ ] No dead code
+- [ ] Consistent style with codebase
 
 ---
 
-### 5. 🧪 Testing (IMPORTANT)
+## 5. 🧪 Testing Review
 
-**Check:**
+### Test Quality Checks
 
 | Question | Expectation |
 |----------|-------------|
-| Are new tests added? | Yes, for new code |
-| Do tests cover edge cases? | Yes, not just happy path |
-| Are tests readable? | Clear intent, not cryptic |
-| Do tests pass? | All green |
-| Are mocks appropriate? | Not over-mocked |
+| New tests added? | Yes, for new code |
+| Edge cases covered? | Not just happy path |
+| Tests readable? | Clear intent |
+| All tests pass? | Green |
+| Mocks appropriate? | Not over-mocked |
 
-**Testing checklist:**
+### Testing Checklist
 
 - [ ] New code has tests
-- [ ] Tests cover edge cases
+- [ ] Edge cases tested
 - [ ] Tests are readable
 - [ ] No skipped tests without reason
-- [ ] Mocks don't mask real issues
+- [ ] Test names describe behavior
+- [ ] Assertions are specific
 
 ---
 
-### 6. 📚 Documentation (NICE TO HAVE)
-
-**Review:**
+## 6. 📚 Documentation Review
 
 - [ ] Public APIs documented
 - [ ] Complex logic explained
 - [ ] README updated if needed
 - [ ] Breaking changes noted
+- [ ] Examples provided
 
 ---
 
-## Review Workflow
-
-### Step 1: Understand Context
+## Review Output Template
 
 ```markdown
-## Context Checklist
+## Code Review Summary
 
-- [ ] Read PR description
-- [ ] Understand the problem being solved
-- [ ] Check linked issues/tickets
-- [ ] Note any design decisions mentioned
-```
+### 🔴 Must Fix (Blocking)
+- [Security] [file:line] - SQL injection vulnerability
+- [Logic] [file:line] - Null check missing
 
-### Step 2: Quick Scan
+### 🟡 Should Consider (Non-blocking)
+- [Performance] Consider batching queries in loop
+- [Style] Variable name could be more descriptive
 
-First pass - get the big picture:
+### 🟢 Done Well
+- Clean separation of concerns
+- Good test coverage on new feature
+- Clear commit messages
 
-1. What files changed?
-2. How many lines added/removed?
-3. What's the general approach?
-
-### Step 3: Deep Review
-
-Second pass - use the dimensions above:
-
-1. Security first
-2. Then correctness
-3. Then performance
-4. Then maintainability
-5. Then tests
-
-### Step 4: Provide Feedback
-
-**Good feedback format:**
-
-```markdown
-## Review Summary
-
-### 🔴 Must Fix (blocking)
-- [Issue 1]: [Description] (file:line)
-
-### 🟡 Should Consider (non-blocking)
-- [Issue 2]: [Suggestion]
-
-### 🟢 Nice to Have
-- [Minor improvement]
-
-### ✅ What's Good
-- [Positive observations]
+### ✅ Overall
+[Approve / Request Changes / Comment]
 ```
 
 ---
@@ -239,24 +250,19 @@ Second pass - use the dimensions above:
 ## Feedback Principles
 
 ### ❌ Bad Feedback
-
 ```
 "This is wrong"
 "LGTM"
-"Why did you do it this way?"
+"Why did you do this?"
 ```
 
 ### ✅ Good Feedback
-
 ```
-"This could cause SQL injection. Use parameterized queries instead:
+"This could cause SQL injection. Use parameterized queries:
 cursor.query('SELECT * FROM users WHERE id = ?', [userId])"
 
-"LGTM after addressing the security concern above. The refactoring of
-the auth module is clean and well-tested."
-
-"I'm curious about this approach - did you consider using X instead?
-It might be simpler because Y."
+"LGTM after addressing the security concern. 
+The refactoring is clean and well-tested."
 ```
 
 **Good feedback is:**
@@ -270,38 +276,28 @@ It might be simpler because Y."
 ## Quick Reference Card
 
 ```
-🔒 Security    → First, always
-🎯 Correctness → Does it work?
-⚡ Performance  → Any N+1? Memory leaks?
-🧹 Maintainability → Readable? DRY?
-🧪 Testing     → Covered? Edge cases?
-📚 Documentation → Updated?
-```
-
----
-
-## Anti-Patterns
-
-### ❌ "LGTM" without reading
-Result: Bugs slip through
-
-### ❌ Nitpicking formatting in first pass
-Result: Miss critical issues
-
-### ❌ Being vague ("this is bad")
-Result: Developer doesn't know how to fix
-
-### ❌ Only looking for problems
-Result: Discouraging, misses good work
-
----
-
-## Integration with AGENTS.md
-
-```markdown
-## Code Review Protocol
-
-When reviewing code, load the code-review-guardian skill.
-Always review security first, then correctness, then other dimensions.
-Provide specific, constructive feedback with examples.
+🔒 SECURITY    → First, always
+   □ Injection risks
+   □ Auth/authz
+   □ Secrets in code
+   
+🎯 CORRECTNESS → Works as expected?
+   □ Edge cases
+   □ Error handling
+   
+⚡ PERFORMANCE  → Scalable?
+   □ N+1 queries
+   □ Memory leaks
+   
+🧹 MAINTAINABILITY → Readable?
+   □ Naming
+   □ Complexity
+   
+🧪 TESTING     → Covered?
+   □ New tests
+   □ Edge cases
+   
+📚 DOCS        → Updated?
+   □ API docs
+   □ README
 ```

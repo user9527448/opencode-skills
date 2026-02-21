@@ -1,93 +1,138 @@
 ---
 name: safe-refactoring
-description: Systematic refactoring protocol - small steps, verified changes, always reversible
+description: Systematic refactoring protocol - small steps, verified changes, always reversible, behavior-preserving
 license: MIT
 compatibility: opencode
 ---
 
 # Safe Refactoring
 
-Refactor without fear. Small steps, verified at each stage.
-
-## When to Use
-
-- Improving code structure without changing behavior
-- Reducing technical debt
-- Preparing code for new features
-- Simplifying complex code
+Refactor without fear. Small steps, each verified.
 
 ---
 
-## The Problem with Big Bang Refactoring
+## 🚨 When to Activate This Skill
+
+| Trigger | Priority |
+|---------|----------|
+| Improving code structure | HIGH |
+| Reducing technical debt | HIGH |
+| Preparing for new feature | MEDIUM |
+| Simplifying complex code | MEDIUM |
+| After understanding legacy code | HIGH |
+
+---
+
+## The Iron Law
 
 ```
-❌ Bad: Rewrite everything → Tests fail → Can't find what broke → Give up
-✅ Good: Small change → Verify → Commit → Repeat
-```
+REFACTORING = Behavior-Preserving Transformation
 
-Large refactorings fail because they're hard to verify and hard to rollback.
+If behavior changes, it's NOT refactoring - it's rewriting.
+```
 
 ---
 
 ## Core Principles
 
-### 1. 🟢 Green Before You Start
-
-**Never refactor red tests.**
+### 1. 🟢 GREEN Before You Start
 
 ```bash
-# Before any refactoring
-npm test  # Must pass completely
+# BEFORE any refactoring
+npm test  # MUST pass completely
+
+# If tests fail, FIX BUGS FIRST
+# Refactoring is for WORKING code
 ```
 
-If tests are failing, fix bugs first. Refactoring is for working code.
+### 2. 📏 Small Steps Only
 
----
-
-### 2. 📏 Small Steps
-
-**Each refactoring step should be:**
-
+**Each step should be:**
 - Completable in <15 minutes
 - Independently verifiable
 - Easy to rollback
 
 ```
-❌ Bad: "Refactor entire authentication module"
-✅ Good: "Extract password validation into separate function"
+❌ "Refactor entire authentication module"
+✅ "Extract password validation into separate function"
 ```
-
----
 
 ### 3. ✅ Verify After Each Step
 
-**After every change:**
-
 ```bash
-# 1. Run tests
-npm test
-
-# 2. Type check (if TypeScript)
-npm run typecheck
-
-# 3. Lint
-npm run lint
+# After EVERY change
+npm test        # Tests pass?
+npm run lint    # No new warnings?
+npm run build   # Compiles?
 ```
-
-**If anything fails:** Stop and fix before continuing.
-
----
 
 ### 4. 💾 Commit Frequently
 
-**After each successful verification:**
-
 ```bash
+# After each successful verification
 git add .
 git commit -m "refactor: [describe single change]"
+
+# Creates rollback points
 ```
 
-This creates rollback points. You can always `git revert` if needed.
+---
+
+## Refactoring Workflow
+
+### Phase 1: Prepare
+
+```markdown
+## Pre-Refactor Checklist
+
+- [ ] All tests pass (GREEN)
+- [ ] No uncommitted changes
+- [ ] Branch is clean
+- [ ] I understand what the code does
+- [ ] Tests exist for this area
+```
+
+### Phase 2: Plan
+
+```markdown
+## Refactoring Plan
+
+### Goal
+[What I want to improve - ONE thing]
+
+### Steps
+1. [Step 1 - <15 min, verifiable]
+2. [Step 2 - <15 min, verifiable]
+3. [Step 3 - <15 min, verifiable]
+
+### Verification
+- [Which tests to run]
+- [Any manual checks needed]
+```
+
+### Phase 3: Execute (Loop)
+
+```
+For each step:
+  1. Make ONE small change
+  2. Run tests
+  3. If GREEN → Commit
+  4. If RED → Fix or ROLLBACK immediately
+  5. Repeat until step complete
+```
+
+### Phase 4: Verify
+
+```bash
+# Full verification
+npm test
+npm run lint
+npm run build
+npm run typecheck  # TypeScript
+
+# Let CI verify
+git push
+```
 
 ---
 
@@ -95,20 +140,18 @@ This creates rollback points. You can always `git revert` if needed.
 
 ### Extract Function
 
-**When:** Code block has a clear purpose
+**When:** Code block has clear purpose
 
 **Before:**
 ```javascript
 function processOrder(order) {
-  // validate order
+  // 20 lines of validation
   if (!order.items || order.items.length === 0) {
     throw new Error('Empty order');
   }
-  if (!order.customer) {
-    throw new Error('No customer');
-  }
+  // ... more validation ...
   
-  // ... rest of function
+  // Actual processing
 }
 ```
 
@@ -116,20 +159,18 @@ function processOrder(order) {
 ```javascript
 function processOrder(order) {
   validateOrder(order);
-  // ... rest of function
+  // Actual processing
 }
 
 function validateOrder(order) {
   if (!order.items || order.items.length === 0) {
     throw new Error('Empty order');
   }
-  if (!order.customer) {
-    throw new Error('No customer');
-  }
+  // ... validation logic ...
 }
 ```
 
-**Verification:** Tests still pass (behavior unchanged)
+**Verify:** Tests still pass
 
 ---
 
@@ -149,13 +190,13 @@ const currentDate = new Date();
 const activeUsers = users.filter(user => user.isActive);
 ```
 
-**Verification:** Tests + type check (rename should not break types)
+**Verify:** Tests + type check
 
 ---
 
-### Extract Constant/Magic Number
+### Extract Constant
 
-**When:** Numbers/strings appear without explanation
+**When:** Magic numbers appear
 
 **Before:**
 ```javascript
@@ -172,7 +213,7 @@ if (user.age >= LEGAL_AGE) { /* ... */ }
 setTimeout(callback, SESSION_TIMEOUT_MS);
 ```
 
-**Verification:** Tests pass
+**Verify:** Tests pass
 
 ---
 
@@ -200,7 +241,7 @@ if (canWrite(user)) {
 }
 ```
 
-**Verification:** Tests for the conditional path pass
+**Verify:** Tests for conditional path
 
 ---
 
@@ -210,167 +251,102 @@ if (canWrite(user)) {
 
 **Steps:**
 1. Search for all usages
-2. If none found, delete
+2. If truly none, delete
 3. Verify tests pass
 
 **Warning:** Be careful with:
-- Public APIs (might be used externally)
-- Reflection/dynamic calls
+- Public APIs (may be external)
 - Event handlers
-
-**Verification:** Full test suite + manual check for edge cases
-
----
-
-## Refactoring Workflow
-
-### Phase 1: Prepare
-
-```markdown
-## Pre-Refactor Checklist
-
-- [ ] All tests pass (green)
-- [ ] No uncommitted changes
-- [ ] Branch is up to date
-- [ ] I understand what the code does
-- [ ] I have tests covering this area
-```
-
-### Phase 2: Plan
-
-```markdown
-## Refactoring Plan
-
-### Goal
-[What I want to improve]
-
-### Steps
-1. [Step 1 - small, verifiable]
-2. [Step 2 - small, verifiable]
-3. [Step 3 - small, verifiable]
-
-### Verification
-- [Which tests to run]
-- [Any manual checks needed]
-```
-
-### Phase 3: Execute
-
-```
-For each step:
-  1. Make change
-  2. Run tests
-  3. If pass → commit
-  4. If fail → fix or rollback
-```
-
-### Phase 4: Verify
-
-```bash
-# Full verification
-npm test
-npm run lint
-npm run typecheck
-
-# If CI exists
-git push  # Let CI verify
-```
+- Reflection/dynamic calls
 
 ---
 
-## Verification Checklist
+## Local Refactorings (Safest)
 
-After refactoring:
+These affect only ONE file:
 
-- [ ] All tests pass
-- [ ] No type errors (TypeScript)
-- [ ] No lint errors
-- [ ] Behavior unchanged (same outputs for same inputs)
-- [ ] No dead code introduced
-- [ ] Documentation updated if public API changed
-
----
-
-## Common Pitfalls
-
-### ❌ "I'll just quickly refactor this while I'm here"
-
-**Problem:** Scope creep, mixing refactoring with feature changes
-
-**Fix:** Separate commits for refactoring vs features
+| Refactoring | Risk | Time |
+|-------------|------|------|
+| Rename variable | Low | 1 min |
+| Extract function | Low | 5 min |
+| Remove unused import | Low | 30 sec |
+| Format code | None | 1 min |
+| Extract constant | Low | 2 min |
+| Simplify if | Low | 3 min |
 
 ---
 
-### ❌ "Tests slow me down, I'll run them at the end"
+## Red Flags - Stop Immediately
 
-**Problem:** Hard to isolate which change broke things
-
-**Fix:** Run tests after every change
-
----
-
-### ❌ "This is simple, I don't need to commit yet"
-
-**Problem:** Lose rollback point if something goes wrong
-
-**Fix:** Commit after every verified change
-
----
-
-### ❌ "I'll clean up tests later"
-
-**Problem:** Refactoring without test coverage is dangerous
-
-**Fix:** Add tests before refactoring if coverage is low
+| Thought | Reality | Action |
+|---------|---------|--------|
+| "I'll just quickly refactor this too" | Scope creep | STOP → One change only |
+| "Tests slow me down" | Risky | Run tests after EVERY change |
+| "This is simple, no commit needed" | No rollback | Commit after each step |
+| "I'll clean up tests later" | Dangerous | Tests MUST pass first |
 
 ---
 
 ## Rollback Strategy
 
-If something goes wrong:
-
-### Immediate Rollback (uncommitted changes)
+### Uncommitted Changes
 ```bash
 git checkout -- .
 git clean -fd
 ```
 
-### Last Commit Rollback
+### Last Commit
 ```bash
 git revert HEAD
 ```
 
-### Find When It Broke
+### Find Breaking Commit
 ```bash
 git bisect start
 git bisect bad HEAD
-git bisect good <last-known-good-commit>
-# Git will binary search to find the breaking commit
+git bisect good <last-good-commit>
+# Git binary searches to find the problem
 ```
+
+---
+
+## Baby Steps Example
+
+**Goal:** Extract user validation
+
+```
+Step 1: Create empty validateUser() function
+        → Run tests → GREEN → Commit
+
+Step 2: Copy validation logic to new function
+        → Run tests → GREEN → Commit
+
+Step 3: Call new function, keep old code
+        → Run tests → GREEN → Commit
+
+Step 4: Remove old validation code
+        → Run tests → GREEN → Commit
+
+Step 5: Remove temporary duplication
+        → Run tests → GREEN → Commit
+```
+
+Each step: <5 minutes, easily rollbackable.
 
 ---
 
 ## Quick Reference
 
 ```
-🟢 GREEN    → Tests must pass before starting
+🟢 GREEN    → Tests MUST pass before starting
 📏 SMALL    → One tiny change at a time
 ✅ VERIFY   → Run tests after each change
 💾 COMMIT   → Checkpoint frequently
 🔄 REPEAT   → Continue until done
-```
 
----
-
-## Integration with AGENTS.md
-
-```markdown
-## Refactoring Protocol
-
-When refactoring code:
-1. Load the safe-refactoring skill
-2. Ensure tests are green before starting
-3. Make small, verifiable changes
-4. Run tests after each change
-5. Commit frequently
+NEVER:
+- Skip running tests
+- Make multiple changes at once
+- Refactor without commits
+- Continue after RED test
 ```

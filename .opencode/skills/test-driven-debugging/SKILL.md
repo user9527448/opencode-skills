@@ -1,232 +1,243 @@
 ---
 name: test-driven-debugging
-description: Systematic debugging workflow for failing tests - understand intent, isolate cause, minimal fix
+description: Four-phase systematic debugging methodology - root cause investigation, pattern analysis, hypothesis testing, minimal fix implementation
 license: MIT
 compatibility: opencode
 ---
 
 # Test-Driven Debugging
 
-Fix failing tests systematically, not randomly.
+**Core Principle: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.**
 
-## When to Use
-
-- Any test is failing
-- CI/CD pipeline is red
-- After making changes that broke existing tests
+Never apply symptom-focused patches. Understand WHY something fails before attempting to fix it.
 
 ---
 
-## The Problem with Random Debugging
+## 🚨 When to Activate This Skill
 
-```
-❌ Bad: See error → Guess cause → Random fix → Hope it works
-✅ Good: See error → Understand test → Isolate cause → Minimal fix
-```
-
-Random debugging wastes time and often introduces new bugs.
+| Trigger | Priority |
+|---------|----------|
+| Any test failure | HIGH |
+| CI/CD pipeline red | HIGH |
+| "Works on my machine" issues | MEDIUM |
+| Flaky test detection | MEDIUM |
+| Regression after changes | HIGH |
 
 ---
 
-## Debugging Protocol
+## The Iron Law
 
-### Phase 1: Understand the Test (READ FIRST)
+```
+NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
-**Before touching any code, answer these questions:**
+If you haven't completed Phase 1, you cannot propose fixes.
+Violating this is violating the spirit of debugging.
+```
+
+---
+
+## Phase 1: Root Cause Investigation
+
+**Before touching any code:**
+
+### Step 1.1: Read Error Messages Thoroughly
+
+Every word in an error message matters. Do not skip.
 
 ```markdown
-## Test Analysis
+## Error Analysis Template
 
-### What is this test testing?
-[Describe the feature/behavior being tested in 1 sentence]
+### Full Error Message
+[Copy the COMPLETE error message, not a summary]
 
-### What is the expected behavior?
-[What should happen according to the test]
+### Stack Trace Analysis
+- Top of stack: [Where error manifested]
+- Bottom of stack: [Where error originated]
+- Key frames: [Important intermediate calls]
 
-### What is the actual behavior?
-[What's actually happening - from error message]
-
-### What assertion failed?
-[The specific line/assertion that failed]
+### Error Type Classification
+[ ] TypeError - Wrong type/null/undefined
+[ ] ReferenceError - Variable not found
+[ ] SyntaxError - Code won't parse
+[ ] AssertionError - Test expectation failed
+[ ] TimeoutError - Operation took too long
 ```
 
-**Action:** Read the test file completely. Do not skip this step.
-
----
-
-### Phase 2: Reproduce and Isolate
-
-**Run the test in isolation:**
+### Step 1.2: Reproduce Consistently
 
 ```bash
-# Run only the failing test
-npm test -- --grep "test name pattern"
+# Run the specific failing test
+npm test -- --grep "exact test name"
 
-# Or for specific file
-npm test -- path/to/failing.test.ts
+# Run with verbose output
+npm test -- --verbose --grep "test name"
+
+# Run in isolation
+npm test -- --runInBand --grep "test name"
 ```
 
-**Isolation checklist:**
+**Reproduction Checklist:**
+- [ ] Can I trigger it reliably?
+- [ ] What are the exact steps?
+- [ ] Does it fail locally AND in CI?
+- [ ] Does it fail in isolation or only in full suite?
 
-- [ ] Does it fail in isolation (not just in full suite)?
-- [ ] Does it fail consistently (not flaky)?
-- [ ] What's the exact error message and stack trace?
+### Step 1.3: Examine Recent Changes
+
+```bash
+# What changed recently?
+git log --oneline -20
+
+# What changed in the failing file?
+git log -p -- path/to/failing.test.ts
+
+# Git bisect to find the breaking commit
+git bisect start
+git bisect bad HEAD
+git bisect good <last-known-good-commit>
+```
+
+### Step 1.4: Gather Diagnostic Evidence
+
+| Evidence Type | How to Collect |
+|---------------|----------------|
+| Screenshots | CI artifacts, local capture |
+| Console logs | `console.log` or debugger |
+| Network requests | DevTools Network tab |
+| Database state | Query before/after test |
 
 ---
 
-### Phase 3: Form Hypotheses
+## Phase 2: Pattern Analysis
 
-**Create a debugging log:**
+### Step 2.1: Locate Working Examples
+
+| Aspect | Working Code | Failing Code | Difference |
+|--------|--------------|--------------|------------|
+| Input | [value] | [value] | [diff] |
+| State | [value] | [value] | [diff] |
+| Timing | [value] | [value] | [diff] |
+
+### Step 2.2: Test Failure Pattern Library
+
+| Pattern | Likely Cause | Quick Check |
+|---------|--------------|-------------|
+| `Expected X but got Y` | Off-by-one, wrong return | Print actual value |
+| `Cannot read property 'x' of undefined` | Missing null check, async timing | Trace undefined source |
+| `Timeout exceeded` | Async not completing, infinite loop | Log each async step |
+| `Mock not called` | Wrong module, different params | Log actual mock calls |
+| `Element not found` | UI changed, selector outdated | Check screenshot |
+| `Works locally, fails CI` | Environment difference | Compare environments |
+
+---
+
+## Phase 3: Hypothesis Testing
+
+### Hypothesis Template
 
 ```markdown
-## Debugging Log
-
-| # | Hypothesis | How to Verify | Result | Conclusion |
-|---|------------|---------------|--------|------------|
-| 1 | [guess 1] | [test approach] | ✓/✗ | [what you learned] |
-| 2 | [guess 2] | [test approach] | ✓/✗ | [what you learned] |
-| 3 | [guess 3] | [test approach] | ✓/✗ | [what you learned] |
+### Hypothesis #1
+**Statement:** "The error occurs because [specific reason]"
+**Test:** [How to verify - minimal test]
+**Expected if true:** [What we'd see]
+**Result:** [CONFIRMED / DISPROVEN]
+**New information:** [What we learned]
 ```
 
-**Hypothesis sources:**
-- Error message/stack trace
-- Recent code changes (git diff)
-- Similar bugs you've seen before
-- Dependencies that changed
+### Rules for Hypothesis Testing
+
+1. Test ONE hypothesis at a time
+2. Make minimal changes to test
+3. Document results before moving on
+4. If hypothesis fails, update understanding
+
+### Debugging Log
+
+| # | Hypothesis | Test Method | Result | Conclusion |
+|---|------------|-------------|--------|------------|
+| 1 | [guess] | [how] | ✓/✗ | [learned] |
+| 2 | [guess] | [how] | ✓/✗ | [learned] |
 
 ---
 
-### Phase 4: Binary Search (When Stuck)
+## Phase 4: Implementation
 
-If the cause isn't obvious, use binary search:
+### Step 4.1: Create Failing Test Case
 
-1. **Comment out half the test** - Does it still fail?
-2. **If yes** - Problem is in the remaining half
-3. **If no** - Problem is in the commented half
-4. **Repeat** until you isolate the failing line
+```javascript
+// Before fixing, capture the bug behavior
+it('should handle null input correctly', () => {
+  const result = processInput(null);
+  expect(result).toBeDefined(); // Currently throws
+});
+```
 
----
+### Step 4.2: Implement Minimal Fix
 
-### Phase 5: Minimal Fix
+- Change only what's necessary
+- Preserve all existing behavior
+- No refactoring during fix
 
-**Fix principles:**
-
-1. **Minimal change** - Fix only what's broken
-2. **Preserve intent** - Don't change test expectations
-3. **No refactoring** - Save that for a separate commit
-
-**Before committing:**
+### Step 4.3: Verify
 
 ```bash
-# Run the specific test
-npm test -- --grep "fixed test"
-
-# Run related tests (same file or module)
-npm test -- path/to/module/
-
-# Run all tests (ensure no regression)
-npm test
+npm test -- --grep "fixed test"  # Specific
+npm test -- path/to/module/      # Related
+npm test                          # Full suite
 ```
 
 ---
 
-## Common Failure Patterns
+## 🛑 Red Flags - Stop Immediately
 
-### Pattern: "Expected X but got Y"
-
-```
-AssertionError: expected 5 to equal 3
-```
-
-**Likely causes:**
-- Off-by-one error
-- Wrong return value
-- State not reset between tests
-
-**Debug approach:** Print/log the actual value before assertion
+| Thought | Reality | Action |
+|---------|---------|--------|
+| "Let me just try this fix" | Guessing | STOP → Do Phase 1 |
+| "Maybe if I increase timeout" | Masking symptom | Find root cause |
+| "It's probably just flaky" | Assumption | Investigate why |
+| "I'll fix it and test later" | Risky | Test after EVERY change |
 
 ---
 
-### Pattern: "Cannot read property X of undefined"
+## Three-Strike Rule
 
 ```
-TypeError: Cannot read property 'id' of undefined
+If THREE consecutive fixes fail:
+
+STOP. This signals:
+- Wrong hypothesis
+- Architectural problem
+- Missing information
+
+Action:
+1. Revert all changes
+2. Gather more evidence
+3. Consult another engineer
 ```
-
-**Likely causes:**
-- Missing null check
-- Async timing issue
-- Mock not set up correctly
-
-**Debug approach:** Trace back where the undefined value came from
-
----
-
-### Pattern: "Timeout exceeded"
-
-```
-Error: Timeout of 5000ms exceeded
-```
-
-**Likely causes:**
-- Async operation not completing
-- Missing await
-- Infinite loop
-
-**Debug approach:** Add logging at each async step
-
----
-
-### Pattern: "Mock not called"
-
-```
-Expected mock function to have been called, but it was not called
-```
-
-**Likely causes:**
-- Mock not applied to correct module
-- Function called with different parameters
-- Import mocking issues
-
-**Debug approach:** Log the actual calls made to the mock
-
----
-
-## Anti-Patterns
-
-### ❌ "I'll just comment out the test"
-Result: Technical debt accumulates, real bugs hide
-
-### ❌ "I'll fix it by changing the test expectation"
-Result: Test passes but doesn't verify correct behavior
-
-### ❌ "Let me refactor while I'm here"
-Result: Introduces new bugs, obscures the real fix
-
-### ❌ "The test is flaky, I'll skip it"
-Result: Real issue never addressed
 
 ---
 
 ## Quick Reference
 
 ```
-1. READ test → Understand what it's testing
-2. RUN test → Isolate the failure
-3. LOG hypotheses → Systematic investigation
-4. FIX minimal → Smallest possible change
-5. VERIFY all → No regressions
-```
+PHASE 1: ROOT CAUSE
+□ Read FULL error message
+□ Reproduce consistently
+□ Check recent changes
+□ Gather evidence
 
----
+PHASE 2: PATTERN
+□ Find working examples
+□ Compare vs failing
+□ Match pattern library
 
-## Integration with AGENTS.md
+PHASE 3: HYPOTHESIS
+□ Form ONE hypothesis
+□ Test minimally
+□ Document result
 
-Add to your project's AGENTS.md:
-
-```markdown
-## Debugging Workflow
-
-When tests fail, load the test-driven-debugging skill and follow its protocol.
-Never skip understanding the test before attempting fixes.
+PHASE 4: IMPLEMENT
+□ Create failing test
+□ Minimal fix
+□ Verify all tests
 ```
