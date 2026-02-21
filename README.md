@@ -38,7 +38,23 @@ cp -r .opencode/skills/* ~/.config/opencode/skills/
 
 ## Usage
 
-Load a skill when needed:
+### How Skills Work
+
+Skills are **guidance documents** loaded into OpenCode's context. They tell the AI agent HOW to approach specific tasks.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  User: "My test is failing, help me fix it"             │
+│                                                         │
+│  OpenCode: Loads test-driven-debugging skill            │
+│            → Now knows the systematic debugging process  │
+│            → Follows: READ → RUN → LOG → FIX → VERIFY    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Loading a Skill
+
+In OpenCode, skills are loaded by calling:
 
 ```
 skill({ name: "test-driven-debugging" })
@@ -46,6 +62,20 @@ skill({ name: "code-review-guardian" })
 skill({ name: "safe-refactoring" })
 skill({ name: "tokensaver" })
 ```
+
+**This happens automatically when:**
+- You mention a related task (e.g., "test is failing")
+- OpenCode detects the need for a skill
+- You explicitly ask to load a skill
+
+### When to Use Each Skill
+
+| Scenario | Skill to Load |
+|----------|---------------|
+| "Test X is failing" | test-driven-debugging |
+| "Review this PR" | code-review-guardian |
+| "Refactor module Y" | safe-refactoring |
+| "Context is too large" | tokensaver |
 
 ## Skill Summaries
 

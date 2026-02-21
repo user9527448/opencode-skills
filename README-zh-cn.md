@@ -38,7 +38,23 @@ cp -r .opencode/skills/* ~/.config/opencode/skills/
 
 ## 使用方法
 
-按需加载技能：
+### 技能如何工作
+
+技能是加载到 OpenCode 上下文中的**指导文档**。它们告诉 AI 代理如何处理特定任务。
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  用户: "我的测试失败了，帮我修一下"                        │
+│                                                         │
+│  OpenCode: 加载 test-driven-debugging 技能              │
+│            → 现在知道系统化的调试流程                      │
+│            → 遵循: READ → RUN → LOG → FIX → VERIFY       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 加载技能
+
+在 OpenCode 中，通过调用以下方式加载技能：
 
 ```
 skill({ name: "test-driven-debugging" })
@@ -46,6 +62,20 @@ skill({ name: "code-review-guardian" })
 skill({ name: "safe-refactoring" })
 skill({ name: "tokensaver" })
 ```
+
+**自动加载的触发条件：**
+- 你提到相关任务（如"测试失败了"）
+- OpenCode 检测到需要某个技能
+- 你明确要求加载某个技能
+
+### 何时使用每个技能
+
+| 场景 | 加载技能 |
+|------|----------|
+| "测试X失败了" | test-driven-debugging |
+| "审查这个PR" | code-review-guardian |
+| "重构模块Y" | safe-refactoring |
+| "上下文太大了" | tokensaver |
 
 ## 技能概要
 
