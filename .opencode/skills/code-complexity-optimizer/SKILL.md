@@ -1,6 +1,6 @@
 ---
 name: code-complexity-optimizer
-description: Algorithm complexity optimization skill. Analyzes time/space complexity, guides optimization through interactive Q&A, and provides tradeoff analysis. Trigger with "code optimization" or "complexity optimization".
+description: Algorithm complexity optimization skill. Analyzes time/space complexity, guides optimization through interactive Q&A, and provides tradeoff analysis.
 license: MIT
 compatibility: opencode
 metadata:
@@ -18,6 +18,12 @@ metadata:
     - "空间复杂度优化"
     - "性能优化"
     - "algorithm optimization"
+  references:
+    languages: references/languages/
+    paradigms: references/paradigms/
+    examples: examples/
+    templates: templates/
+    scripts: scripts/
 ---
 
 # Code Complexity Optimizer
@@ -36,6 +42,12 @@ Systematic algorithm optimization through complexity analysis. Analyzes time com
 - "性能优化" / "performance optimization"
 - "算法优化" / "algorithm optimization"
 - Or mentions O(n), Big O notation, performance bottlenecks
+
+---
+
+## The Iron Law
+
+> **Always analyze complexity BEFORE optimizing.** Never guess—measure and document the current state first.
 
 ---
 
@@ -233,80 +245,6 @@ IF time_critical:
 
 ---
 
-## Common Optimization Patterns
-
-### 1. O(n²) → O(n) via Hash Map
-
-```python
-# Before: O(n²)
-for i in range(n):
-    for j in range(n):
-        if arr[i] + arr[j] == target:
-            return (i, j)
-
-# After: O(n)
-seen = {}
-for i, num in enumerate(arr):
-    if target - num in seen:
-        return (seen[target - num], i)
-    seen[num] = i
-```
-
-### 2. O(n) → O(log n) via Binary Search
-
-```python
-# Before: O(n)
-for i, val in enumerate(sorted_arr):
-    if val == target:
-        return i
-
-# After: O(log n)
-left, right = 0, len(sorted_arr) - 1
-while left <= right:
-    mid = (left + right) // 2
-    if sorted_arr[mid] == target:
-        return mid
-    elif sorted_arr[mid] < target:
-        left = mid + 1
-    else:
-        right = mid - 1
-```
-
-### 3. O(2ⁿ) → O(n) via Memoization
-
-```python
-# Before: O(2ⁿ)
-def fib(n):
-    if n <= 1:
-        return n
-    return fib(n-1) + fib(n-2)
-
-# After: O(n)
-def fib(n, memo={}):
-    if n in memo:
-        return memo[n]
-    if n <= 1:
-        return n
-    memo[n] = fib(n-1, memo) + fib(n-2, memo)
-    return memo[n]
-```
-
-### 4. Space O(n) → O(1) In-place
-
-```python
-# Before: O(n) space
-result = arr[::-1]
-
-# After: O(1) space
-left, right = 0, len(arr) - 1
-while left < right:
-    arr[left], arr[right] = arr[right], arr[left]
-    left += 1
-    right -= 1
-```
-
----
-
 ## Anti-Patterns to Avoid
 
 | Anti-Pattern | Why Bad | Fix |
@@ -346,39 +284,49 @@ while left < right:
 
 ---
 
-## Example Workflow
+## Tool Integration
 
-**User**: "优化这段代码的代码优化"
+### Automated Complexity Analysis
+
+Use `scripts/analyze.py` for multi-language complexity analysis:
+
+```bash
+pip install lizard radon
+python scripts/analyze.py src/utils.py
+python scripts/analyze.py ./src --format json --output report.json
+```
+
+### Benchmark Without Tests
+
+Use `scripts/benchmark.py` to verify optimizations:
+
+```bash
+python scripts/benchmark.py my_module.py process_data --runs 100
+python scripts/benchmark.py original.py func --compare optimized.py
+```
+
+### Verification Template
+
+Use `templates/verification.py` for quick correctness checks:
 
 ```python
-def find_duplicates(arr):
-    duplicates = []
-    for i in range(len(arr)):
-        for j in range(i + 1, len(arr)):
-            if arr[i] == arr[j] and arr[i] not in duplicates:
-                duplicates.append(arr[i])
-    return duplicates
+from templates.verification import verify_optimization
+verify_optimization(original_func, optimized_func, test_cases)
 ```
 
-**Agent Response**:
-```
-分析结果:
-- 时间复杂度: O(n³) - 双重循环 O(n²) × not in 检查 O(n)
-- 空间复杂度: O(n) - duplicates 数组
-- 瓶颈: 嵌套循环 + 线性查找
+---
 
-优化方案建议:
+## Reference Files
 
-1. 【优先时间】使用集合去重
-   - 时间: O(n²) → O(n)
-   - 空间: O(n) (增加一个集合)
-   
-2. 【平衡优化】使用 Counter
-   - 时间: O(n)
-   - 空间: O(n)
-   
-请选择优化方向，或让我自动判断？
-```
+For detailed language-specific or paradigm-specific guidance:
+
+| Category | Location | Contents |
+|----------|----------|----------|
+| **Languages** | `references/languages/` | Python, JavaScript, Java, C/C++, Go guides |
+| **Paradigms** | `references/paradigms/` | OOP, FP, Reactive, Concurrent patterns |
+| **Examples** | `examples/` | Optimization patterns with before/after |
+| **Templates** | `templates/` | Verification and benchmark templates |
+| **Scripts** | `scripts/` | analyze.py, benchmark.py |
 
 ---
 
@@ -390,9 +338,20 @@ def find_duplicates(arr):
 
 ---
 
+## Red Flags - Stop Immediately
+
+| Thought | Reality | Action |
+|---------|---------|--------|
+| "Let me just try this fix" | Guessing | STOP → Do Phase 1 analysis first |
+| "Maybe increase timeout" | Masking symptom | Find root cause |
+| "This looks slow" | Assumption | Measure before optimizing |
+| "Copy-paste this pattern" | Context mismatch | Analyze your specific case |
+
+---
+
 ## Limitations
 
-- Cannot optimize external library code
-- Requires test coverage for safety
-- Some optimizations are language-specific
-- May not apply to all coding paradigms
+- Cannot modify compiled code or binaries
+- Some optimizations require runtime profiling data
+- Hardware-specific optimizations need testing on target platform
+- Distributed system optimizations require infrastructure changes

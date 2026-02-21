@@ -1,6 +1,6 @@
 ---
 name: code-complexity-optimizer
-description: 算法复杂度优化技能。分析时间/空间复杂度，通过交互式问答引导优化，并提供权衡分析。触发词："代码优化"或"复杂度优化"。
+description: 算法复杂度优化技能。分析时间/空间复杂度，通过交互式问答引导优化，并提供权衡分析。
 license: MIT
 compatibility: opencode
 metadata:
@@ -18,6 +18,12 @@ metadata:
     - "空间复杂度优化"
     - "性能优化"
     - "algorithm optimization"
+  references:
+    languages: references/languages/
+    paradigms: references/paradigms/
+    examples: examples/
+    templates: templates/
+    scripts: scripts/
 ---
 
 # 代码复杂度优化器
@@ -36,6 +42,12 @@ metadata:
 - "性能优化" / "performance optimization"
 - "算法优化" / "algorithm optimization"
 - 或提及 O(n)、大O表示法、性能瓶颈
+
+---
+
+## 核心原则
+
+> **优化前必须分析复杂度。** 永远不要猜测——先测量并记录当前状态。
 
 ---
 
@@ -100,7 +112,7 @@ metadata:
 ### 步骤 2.2: 了解约束条件
 
 询问以下内容：
-- **输入规模**: n 通常有多大？（10、1000、10⁶？）
+- **输入规模**: n 通常有多大？（10, 1000, 10⁶？）
 - **调用频率**: 此代码多久被调用一次？
 - **运行环境**: 内存限制？时间限制？
 - **正确性要求**: 算法可以改变吗？必须保持完全相同的行为？
@@ -233,80 +245,6 @@ IF 时间关键:
 
 ---
 
-## 常见优化模式
-
-### 1. O(n²) → O(n) 通过哈希表
-
-```python
-# 优化前: O(n²)
-for i in range(n):
-    for j in range(n):
-        if arr[i] + arr[j] == target:
-            return (i, j)
-
-# 优化后: O(n)
-seen = {}
-for i, num in enumerate(arr):
-    if target - num in seen:
-        return (seen[target - num], i)
-    seen[num] = i
-```
-
-### 2. O(n) → O(log n) 通过二分查找
-
-```python
-# 优化前: O(n)
-for i, val in enumerate(sorted_arr):
-    if val == target:
-        return i
-
-# 优化后: O(log n)
-left, right = 0, len(sorted_arr) - 1
-while left <= right:
-    mid = (left + right) // 2
-    if sorted_arr[mid] == target:
-        return mid
-    elif sorted_arr[mid] < target:
-        left = mid + 1
-    else:
-        right = mid - 1
-```
-
-### 3. O(2ⁿ) → O(n) 通过记忆化
-
-```python
-# 优化前: O(2ⁿ)
-def fib(n):
-    if n <= 1:
-        return n
-    return fib(n-1) + fib(n-2)
-
-# 优化后: O(n)
-def fib(n, memo={}):
-    if n in memo:
-        return memo[n]
-    if n <= 1:
-        return n
-    memo[n] = fib(n-1, memo) + fib(n-2, memo)
-    return memo[n]
-```
-
-### 4. 空间 O(n) → O(1) 原地操作
-
-```python
-# 优化前: O(n) 空间
-result = arr[::-1]
-
-# 优化后: O(1) 空间
-left, right = 0, len(arr) - 1
-while left < right:
-    arr[left], arr[right] = arr[right], arr[left]
-    left += 1
-    right -= 1
-```
-
----
-
 ## 需要避免的反模式
 
 | 反模式 | 为何不好 | 修复方法 |
@@ -346,39 +284,49 @@ while left < right:
 
 ---
 
-## 示例工作流
+## 工具集成
 
-**用户**: "优化这段代码的代码优化"
+### 自动化复杂度分析
+
+使用 `scripts/analyze.py` 进行多语言复杂度分析：
+
+```bash
+pip install lizard radon
+python scripts/analyze.py src/utils.py
+python scripts/analyze.py ./src --format json --output report.json
+```
+
+### 无测试基准验证
+
+使用 `scripts/benchmark.py` 验证优化：
+
+```bash
+python scripts/benchmark.py my_module.py process_data --runs 100
+python scripts/benchmark.py original.py func --compare optimized.py
+```
+
+### 验证模板
+
+使用 `templates/verification.py` 进行快速正确性检查：
 
 ```python
-def find_duplicates(arr):
-    duplicates = []
-    for i in range(len(arr)):
-        for j in range(i + 1, len(arr)):
-            if arr[i] == arr[j] and arr[i] not in duplicates:
-                duplicates.append(arr[i])
-    return duplicates
+from templates.verification import verify_optimization
+verify_optimization(original_func, optimized_func, test_cases)
 ```
 
-**智能体响应**:
-```
-分析结果:
-- 时间复杂度: O(n³) - 双重循环 O(n²) × not in 检查 O(n)
-- 空间复杂度: O(n) - duplicates 数组
-- 瓶颈: 嵌套循环 + 线性查找
+---
 
-优化方案建议:
+## 参考文件
 
-1. 【优先时间】使用集合去重
-   - 时间: O(n²) → O(n)
-   - 空间: O(n)（增加一个集合）
-   
-2. 【平衡优化】使用 Counter
-   - 时间: O(n)
-   - 空间: O(n)
-   
-请选择优化方向，或让我自动判断？
-```
+详细的语言特定或范式特定指南：
+
+| 类别 | 位置 | 内容 |
+|------|------|------|
+| **语言指南** | `references/languages/` | Python, JavaScript, Java, C/C++, Go 指南 |
+| **范式指南** | `references/paradigms/` | OOP, FP, 响应式, 并发模式 |
+| **示例** | `examples/` | 优化模式的前后对比 |
+| **模板** | `templates/` | 验证和基准测试模板 |
+| **脚本** | `scripts/` | analyze.py, benchmark.py |
 
 ---
 
@@ -390,9 +338,20 @@ def find_duplicates(arr):
 
 ---
 
+## 警示信号 - 立即停止
+
+| 想法 | 现实 | 行动 |
+|------|------|------|
+| "让我试试这个修复" | 猜测 | 停止 → 先执行阶段1分析 |
+| "也许增加超时时间" | 掩盖症状 | 找到根本原因 |
+| "这看起来很慢" | 假设 | 优化前先测量 |
+| "复制粘贴这个模式" | 上下文不匹配 | 分析你的具体情况 |
+
+---
+
 ## 限制
 
-- 无法优化外部库代码
-- 需要测试覆盖率以确保安全
-- 某些优化是语言特定的
-- 可能不适用于所有编程范式
+- 无法修改编译代码或二进制文件
+- 某些优化需要运行时性能分析数据
+- 硬件特定优化需要在目标平台测试
+- 分布式系统优化需要基础设施变更
