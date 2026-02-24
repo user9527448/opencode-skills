@@ -122,4 +122,4 @@ MIT
 
 ## 作者
 
-OpenCode Skills Collection
+user9527448
