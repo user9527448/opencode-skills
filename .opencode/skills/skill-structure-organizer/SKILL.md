@@ -255,6 +255,89 @@ find .opencode/skills/<skill-name> -type f | wc -l
 
 ---
 
+---
+
+## Phase 7: Chinese Localization (Optional)
+
+### When to Add Chinese Version
+
+Add Chinese localization when:
+- Skill targets Chinese-speaking users
+- User mentions "中文", "Chinese", "双语"
+- Skill is being actively maintained
+
+### Step 7.1: Create SKILL-zh-cn.md
+
+```bash
+# Copy main skill file
+cp SKILL.md SKILL-zh-cn.md
+```
+
+### Step 7.2: Translate Content
+
+| English | Chinese |
+|---------|---------|
+| Overview | 概述 |
+| Features | 功能特性 |
+| Quick Start | 快速开始 |
+| Usage | 使用方法 |
+| Examples | 示例 |
+| Integration | 集成 |
+| Limitations | 限制 |
+| License | 许可证 |
+
+### Step 7.3: Create README-zh-cn.md
+
+```bash
+cp README.md README-zh-cn.md
+```
+
+Translate these sections:
+- Title and description
+- Overview
+- Features
+- Directory Structure
+- Quick Start
+- Quick Reference
+- Integration
+
+### Step 7.4: Update Frontmatter
+
+```yaml
+---
+name: skill-name
+description: Brief description (English)
+description_zh: Brief description (Chinese)
+metadata:
+  author: ...
+  languages:
+    - en
+    - zh-cn
+---
+```
+
+### Step 7.5: Chinese Localization Checklist
+
+- [ ] SKILL-zh-cn.md created
+- [ ] All Chinese translations accurate
+- [ ] README-zh-cn.md created
+- [ ] Frontmatter includes languages array
+- [ ] Chinese trigger words added to metadata
+
+### Chinese Trigger Words
+
+Add to frontmatter triggers:
+```yaml
+metadata:
+  triggers:
+    - "restructure skill"
+    - "skill too long"
+    - "重构 skill"
+    - "skill 太长"
+```
+
+---
+
 ## Quick Reference Card
 
 ```

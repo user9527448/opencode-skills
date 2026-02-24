@@ -1,35 +1,47 @@
 ---
 name: safe-refactoring
-description: Systematic refactoring protocol - small steps, verified changes, always reversible, behavior-preserving
+description: Comprehensive refactoring protocol - small steps, verified changes, behavior-preserving, with code smells catalog
 license: MIT
 compatibility: opencode
+metadata:
+  references:
+    catalog: references/catalog/
+    smells: references/smells/
+    examples: examples/
+    templates: templates/
 ---
 
 # Safe Refactoring
 
-Refactor without fear. Small steps, each verified.
+> Refactor without fear. Small steps, each verified. Always preserve behavior.
 
 ---
 
 ## 🚨 When to Activate This Skill
 
-| Trigger | Priority |
-|---------|----------|
-| Improving code structure | HIGH |
-| Reducing technical debt | HIGH |
-| Preparing for new feature | MEDIUM |
-| Simplifying complex code | MEDIUM |
-| After understanding legacy code | HIGH |
+| Trigger | Priority | Notes |
+|---------|----------|-------|
+| Improving code structure | HIGH | When code is hard to understand |
+| Reducing technical debt | HIGH | When code slows development |
+| Preparing for new feature | MEDIUM | Before adding complex logic |
+| Simplifying complex code | MEDIUM | Long methods, god classes |
+| After understanding legacy code | HIGH | When legacy code is documented |
 
 ---
 
 ## The Iron Law
 
 ```
-REFACTORING = Behavior-Preserving Transformation
+REFACTORING (n.): a change made to the internal structure of software
+to make it easier to understand and cheaper to modify without
+changing its observable behavior.
 
-If behavior changes, it's NOT refactoring - it's rewriting.
+— Martin Fowler
 ```
+
+**Core Principle:**
+- ✅ Changing structure WITHOUT changing behavior → **Refactoring**
+- ❌ Changing structure AND behavior → **Rewriting** (different process)
 
 ---
 
@@ -61,277 +73,162 @@ npm test  # MUST pass completely
 
 ```bash
 # After EVERY change
-npm test        # Tests pass?
-npm run lint    # No new warnings?
-npm run build   # Compiles?
+npm run lint        # 1. Linting passes
+npm run typecheck  # 2. Types are valid
+npm test           # 3. Tests pass
+npm run build      # 4. Build succeeds
 ```
 
 ### 4. 💾 Commit Frequently
 
 ```bash
 # After each successful verification
-git add .
 git commit -m "refactor: [describe single change]"
-
-# Creates rollback points
 ```
 
 ---
 
-## Refactoring Workflow
+## Workflow Overview
 
-### Phase 1: Prepare
+```
+┌─────────────────────────────────────────────────────┐
+│           REFACTORING WORKFLOW                       │
+├─────────────────────────────────────────────────────┤
+│ 1. ASSESS     → Understand code, measure metrics    │
+│ 2. PREPARE    → Checklist, define scope            │
+│ 3. PLAN       → Choose refactoring type             │
+│ 4. EXECUTE    → Loop: change → test → commit       │
+│ 5. VERIFY     → Full test suite, push to CI        │
+└─────────────────────────────────────────────────────┘
+```
 
-```markdown
-## Pre-Refactor Checklist
+---
 
-- [ ] All tests pass (GREEN)
-- [ ] No uncommitted changes
+## Phase 1: Assessment
+
+### Code Understanding
+
+Before refactoring, answer:
+
+| Question | Why It Matters |
+|----------|----------------|
+| What does this code do? | Can't improve what you don't understand |
+| How is it tested? | Tests define correct behavior |
+| Who uses this code? | External dependencies may break |
+
+### Code Metrics
+
+| Metric | Threshold | Action |
+|--------|-----------|--------|
+| Function length | >50 lines | Extract method |
+| Cyclomatic complexity | >10 | Simplify logic |
+| Parameters | >4 | Parameter object |
+| Nesting depth | >4 | Early returns |
+
+---
+
+## Phase 2: Preparation
+
+Use `templates/pre-refactor-checklist.md` for structured preparation.
+
+### Pre-Refactor Checklist
+
+- [ ] Tests pass (GREEN)
+- [ ] Coverage > 70%
 - [ ] Branch is clean
-- [ ] I understand what the code does
-- [ ] Tests exist for this area
+- [ ] Goal is ONE improvement
+- [ ] Steps broken into <15 min each
+
+---
+
+## Phase 3: Planning
+
+### Choose Refactoring Type
+
+Based on code smell:
+
+| Code Smell | Refactoring | Priority |
+|------------|-------------|----------|
+| Long Method | Extract Method | P0 |
+| Large Class | Extract Class | P0 |
+| Duplicate Code | Extract Function | P1 |
+| Feature Envy | Move Method | P1 |
+| Data Clumps | Parameter Object | P1 |
+| Switch Statements | Polymorphism | P2 |
+
+**Full catalog:** See `references/catalog/refactoring-types.md`
+
+### Plan Baby Steps
+
+Use `templates/execution-plan.md` for structured planning.
+
+---
+
+## Phase 4: Execution
+
+### The Safe Loop
+
+```
+1. Pick ONE small change
+2. Make the change
+3. RUN TESTS
+   ├─ GREEN → Commit & Continue
+   └─ RED   → Fix OR Rollback
+4. Repeat until done
 ```
 
-### Phase 2: Plan
+### When Tests Fail
 
-```markdown
-## Refactoring Plan
+| Step | Action |
+|------|--------|
+| 1 | Revert change → Tests pass? |
+| 2 | If yes: Fix the bug introduced |
+| 3 | If no: Pre-existing failure |
 
-### Goal
-[What I want to improve - ONE thing]
+**⚠️ NEVER leave tests failing**
 
-### Steps
-1. [Step 1 - <15 min, verifiable]
-2. [Step 2 - <15 min, verifiable]
-3. [Step 3 - <15 min, verifiable]
+---
 
-### Verification
-- [Which tests to run]
-- [Any manual checks needed]
-```
-
-### Phase 3: Execute (Loop)
-
-```
-For each step:
-  1. Make ONE small change
-  2. Run tests
-  3. If GREEN → Commit
-  4. If RED → Fix or ROLLBACK immediately
-  5. Repeat until step complete
-```
-
-### Phase 4: Verify
+## Phase 5: Verification
 
 ```bash
 # Full verification
-npm test
-npm run lint
-npm run build
-npm run typecheck  # TypeScript
+npm test && npm run lint && npm run build
 
-# Let CI verify
+# Push to CI
 git push
 ```
 
 ---
 
-## Refactoring Catalog
+## 📁 Directory Structure
 
-### Extract Function
-
-**When:** Code block has clear purpose
-
-**Before:**
-```javascript
-function processOrder(order) {
-  // 20 lines of validation
-  if (!order.items || order.items.length === 0) {
-    throw new Error('Empty order');
-  }
-  // ... more validation ...
-  
-  // Actual processing
-}
 ```
-
-**After:**
-```javascript
-function processOrder(order) {
-  validateOrder(order);
-  // Actual processing
-}
-
-function validateOrder(order) {
-  if (!order.items || order.items.length === 0) {
-    throw new Error('Empty order');
-  }
-  // ... validation logic ...
-}
-```
-
-**Verify:** Tests still pass
-
----
-
-### Rename Variable/Function
-
-**When:** Name doesn't communicate intent
-
-**Before:**
-```javascript
-const d = new Date();
-const temp = users.filter(u => u.active);
-```
-
-**After:**
-```javascript
-const currentDate = new Date();
-const activeUsers = users.filter(user => user.isActive);
-```
-
-**Verify:** Tests + type check
-
----
-
-### Extract Constant
-
-**When:** Magic numbers appear
-
-**Before:**
-```javascript
-if (user.age >= 18) { /* ... */ }
-setTimeout(callback, 30000);
-```
-
-**After:**
-```javascript
-const LEGAL_AGE = 18;
-const SESSION_TIMEOUT_MS = 30000;
-
-if (user.age >= LEGAL_AGE) { /* ... */ }
-setTimeout(callback, SESSION_TIMEOUT_MS);
-```
-
-**Verify:** Tests pass
-
----
-
-### Simplify Conditional
-
-**When:** Complex boolean logic
-
-**Before:**
-```javascript
-if (user && user.isActive && !user.isBanned && user.hasPermission('write')) {
-  // ...
-}
-```
-
-**After:**
-```javascript
-function canWrite(user) {
-  return user?.isActive 
-    && !user.isBanned 
-    && user.hasPermission('write');
-}
-
-if (canWrite(user)) {
-  // ...
-}
-```
-
-**Verify:** Tests for conditional path
-
----
-
-### Remove Dead Code
-
-**When:** Code is unused
-
-**Steps:**
-1. Search for all usages
-2. If truly none, delete
-3. Verify tests pass
-
-**Warning:** Be careful with:
-- Public APIs (may be external)
-- Event handlers
-- Reflection/dynamic calls
-
----
-
-## Local Refactorings (Safest)
-
-These affect only ONE file:
-
-| Refactoring | Risk | Time |
-|-------------|------|------|
-| Rename variable | Low | 1 min |
-| Extract function | Low | 5 min |
-| Remove unused import | Low | 30 sec |
-| Format code | None | 1 min |
-| Extract constant | Low | 2 min |
-| Simplify if | Low | 3 min |
-
----
-
-## Red Flags - Stop Immediately
-
-| Thought | Reality | Action |
-|---------|---------|--------|
-| "I'll just quickly refactor this too" | Scope creep | STOP → One change only |
-| "Tests slow me down" | Risky | Run tests after EVERY change |
-| "This is simple, no commit needed" | No rollback | Commit after each step |
-| "I'll clean up tests later" | Dangerous | Tests MUST pass first |
-
----
-
-## Rollback Strategy
-
-### Uncommitted Changes
-```bash
-git checkout -- .
-git clean -fd
-```
-
-### Last Commit
-```bash
-git revert HEAD
-```
-
-### Find Breaking Commit
-```bash
-git bisect start
-git bisect bad HEAD
-git bisect good <last-good-commit>
-# Git binary searches to find the problem
+safe-refactoring/
+├── SKILL.md
+├── references/
+│   ├── catalog/
+│   │   └── refactoring-types.md    # 15 refactoring types
+│   └── smells/
+│       └── code-smells.md            # 14 code smells
+├── examples/
+│   └── scenarios/
+│       └── refactoring-scenarios.md  # Real-world examples
+└── templates/
+    ├── pre-refactor-checklist.md
+    └── execution-plan.md
 ```
 
 ---
 
-## Baby Steps Example
+## 📖 Reference Files
 
-**Goal:** Extract user validation
-
-```
-Step 1: Create empty validateUser() function
-        → Run tests → GREEN → Commit
-
-Step 2: Copy validation logic to new function
-        → Run tests → GREEN → Commit
-
-Step 3: Call new function, keep old code
-        → Run tests → GREEN → Commit
-
-Step 4: Remove old validation code
-        → Run tests → GREEN → Commit
-
-Step 5: Remove temporary duplication
-        → Run tests → GREEN → Commit
-```
-
-Each step: <5 minutes, easily rollbackable.
+| Category | Location | Contents |
+|----------|----------|----------|
+| **Catalog** | `references/catalog/` | 15 refactoring techniques |
+| **Smells** | `references/smells/` | 14 code smells with fixes |
+| **Scenarios** | `examples/scenarios/` | Real-world refactoring |
+| **Templates** | `templates/` | Checklist and planning |
 
 ---
 
@@ -342,11 +239,36 @@ Each step: <5 minutes, easily rollbackable.
 📏 SMALL    → One tiny change at a time
 ✅ VERIFY   → Run tests after each change
 💾 COMMIT   → Checkpoint frequently
-🔄 REPEAT   → Continue until done
 
 NEVER:
 - Skip running tests
 - Make multiple changes at once
-- Refactor without commits
 - Continue after RED test
 ```
+
+---
+
+## Red Flags - STOP Immediately
+
+| Thought | Reality | Action |
+|---------|---------|--------|
+| "Tests slow me down" | Without tests, you're blind | Run tests ALWAYS |
+| "I'll refactor this too" | Scope creep | Stick to ONE goal |
+| "This is simple, no tests needed" | Assumptions dangerous | Add tests first |
+| "Let me just try this" | Guessing | Analyze first |
+
+---
+
+## Integration Notes
+
+- Works with `test-driven-debugging` for adding tests first
+- Works with `code-review-guardian` after refactoring
+- Use `code-complexity-optimizer` for algorithmic improvements
+
+---
+
+## Limitations
+
+- Cannot refactor compiled binaries
+- Cannot refactor code without understanding
+- Large-scale refactoring requires team coordination

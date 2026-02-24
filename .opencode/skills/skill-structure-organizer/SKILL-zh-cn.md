@@ -227,6 +227,89 @@ metadata:
 
 ---
 
+---
+
+## 阶段 7: 中文本地化 (可选)
+
+### 何时添加中文版本
+
+在以下情况下添加中文本地化：
+- 技能面向中文用户
+- 用户提及"中文", "Chinese", "双语"
+- 技能正在积极维护
+
+### 步骤 7.1: 创建 SKILL-zh-cn.md
+
+```bash
+# 复制主技能文件
+cp SKILL.md SKILL-zh-cn.md
+```
+
+### 步骤 7.2: 翻译内容
+
+| English | Chinese |
+|---------|---------|
+| Overview | 概述 |
+| Features | 功能特性 |
+| Quick Start | 快速开始 |
+| Usage | 使用方法 |
+| Examples | 示例 |
+| Integration | 集成 |
+| Limitations | 限制 |
+| License | 许可证 |
+
+### 步骤 7.3: 创建 README-zh-cn.md
+
+```bash
+cp README.md README-zh-cn.md
+```
+
+翻译以下部分：
+- 标题和描述
+- 概述
+- 功能特性
+- 目录结构
+- 快速开始
+- 快速参考
+- 集成
+
+### 步骤 7.4: 更新 Frontmatter
+
+```yaml
+---
+name: skill-name
+description: Brief description (English)
+description_zh: Brief description (Chinese)
+metadata:
+  author: ...
+  languages:
+    - en
+    - zh-cn
+---
+```
+
+### 步骤 7.5: 中文本地化清单
+
+- [ ] SKILL-zh-cn.md 已创建
+- [ ] 所有中文翻译准确
+- [ ] README-zh-cn.md 已创建
+- [ ] Frontmatter 包含 languages 数组
+- [ ] 中文触发词已添加到 metadata
+
+### 中文触发词
+
+添加到 frontmatter triggers:
+```yaml
+metadata:
+  triggers:
+    - "restructure skill"
+    - "skill too long"
+    - "重构 skill"
+    - "skill 太长"
+```
+
+---
+
 ## 快速参考卡
 
 ```
