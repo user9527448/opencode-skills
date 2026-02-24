@@ -1,27 +1,41 @@
 ---
 name: test-driven-debugging
-description: Four-phase systematic debugging methodology - root cause investigation, pattern analysis, hypothesis testing, minimal fix implementation
+description: Four-phase systematic debugging methodology - root cause investigation, pattern analysis, hypothesis testing, minimal fix implementation. Enhanced with causal debugging, deterministic replay, and verification gates.
 license: MIT
 compatibility: opencode
+metadata:
+  references:
+    patterns: references/patterns/
+    scenarios: examples/scenarios/
+    templates: templates/
+    scripts: scripts/
+  triggers:
+    - "test failed"
+    - "debug this"
+    - "fix bug"
+    - "regression"
+    - "flaky test"
+    - "CI red"
 ---
 
 # Test-Driven Debugging
 
-**Core Principle: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.**
-
-Never apply symptom-focused patches. Understand WHY something fails before attempting to fix it.
+> NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.
+> 
+> Enhanced with Causal Debugging principles: deterministic replay, dynamic slicing, and verification gates.
 
 ---
 
 ## 🚨 When to Activate This Skill
 
-| Trigger | Priority |
-|---------|----------|
-| Any test failure | HIGH |
-| CI/CD pipeline red | HIGH |
-| "Works on my machine" issues | MEDIUM |
-| Flaky test detection | MEDIUM |
-| Regression after changes | HIGH |
+| Trigger | Priority | Notes |
+|---------|----------|-------|
+| Any test failure | HIGH | Start immediately |
+| CI/CD pipeline red | HIGH | Blocked deployment |
+| "Works on my machine" | MEDIUM | Environment issue |
+| Flaky test detection | MEDIUM | Non-deterministic |
+| Regression after changes | HIGH | Recently introduced |
+| Production incident | CRITICAL | Time-sensitive |
 
 ---
 
@@ -32,102 +46,185 @@ NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST
 
 If you haven't completed Phase 1, you cannot propose fixes.
 Violating this is violating the spirit of debugging.
+
+Additionally: NEVER ship unverified fixes
+- Coverage must meet threshold
+- Mutation tests must pass
+- All existing tests must pass
 ```
+
+---
+
+## Core Principles
+
+### 1. 🟢 Deterministic First
+
+Before anything else, make the failure reproducible:
+
+```bash
+# Freeze environment
+npm install --frozen-lockfile
+node --version
+npm --version
+
+# Capture exact inputs
+cp -r test/fixtures/ /tmp/debug/
+```
+
+### 2. 🔬 Scientific Method
+
+Debugging is hypothesis testing, not guessing:
+
+```
+HYPOTHESIS → TEST → EVIDENCE → CONCLUSION
+
+Never: "I think this might work"
+Always: "If X causes Y, then Z should happen"
+```
+
+### 3. 📏 Minimal Reproduction
+
+Isolate to the smallest possible case:
+
+```
+❌ "The whole test suite fails"
+✅ "This single test fails with these exact inputs"
+```
+
+### 4. 🛡️ Verification Gates
+
+Never ship without proof:
+
+| Gate | Threshold | Tool |
+|------|-----------|------|
+| Unit tests | 100% pass | jest, pytest |
+| Coverage | >80% changed | coverage report |
+| Mutation | >90% killed | stryker, mutmut |
+| Type check | 0 errors | tsc --noEmit |
 
 ---
 
 ## Phase 1: Root Cause Investigation
 
-**Before touching any code:**
+**Time box: 15-30 minutes maximum**
 
-### Step 1.1: Read Error Messages Thoroughly
+### Step 1.1: Error Analysis
 
-Every word in an error message matters. Do not skip.
+Every word in an error message matters:
 
 ```markdown
-## Error Analysis Template
+## Error Analysis
 
 ### Full Error Message
-[Copy the COMPLETE error message, not a summary]
+[Copy COMPLETE - no truncation]
 
-### Stack Trace Analysis
-- Top of stack: [Where error manifested]
-- Bottom of stack: [Where error originated]
-- Key frames: [Important intermediate calls]
+### Stack Trace Reading
+- Entry point: Where flow started
+- Failure point: Where it crashed  
+- Key frames: [list important calls]
 
-### Error Type Classification
-[ ] TypeError - Wrong type/null/undefined
-[ ] ReferenceError - Variable not found
-[ ] SyntaxError - Code won't parse
-[ ] AssertionError - Test expectation failed
-[ ] TimeoutError - Operation took too long
+### Error Classification
+[ ] TypeError - null/undefined access
+[ ] ReferenceError - variable not found
+[ ] SyntaxError - parsing failed
+[ ] AssertionError - expectation failed
+[ ] TimeoutError - async never resolved
+[ ] NetworkError - API unreachable
+[ ] MemoryError - OOM, stack overflow
 ```
 
-### Step 1.2: Reproduce Consistently
+### Step 1.2: Deterministic Reproduction
 
 ```bash
-# Run the specific failing test
-npm test -- --grep "exact test name"
+# Isolate the exact failing case
+npm test -- --grep "exact test name" --verbose
 
-# Run with verbose output
-npm test -- --verbose --grep "test name"
+# Run in isolation (no parallel)
+npm test -- --runInBand
 
-# Run in isolation
-npm test -- --runInBand --grep "test name"
+# Capture environment
+node --version > env.txt
+npm list > deps.txt
+
+# Freeze random seeds
+export seed=12345
 ```
 
 **Reproduction Checklist:**
-- [ ] Can I trigger it reliably?
-- [ ] What are the exact steps?
-- [ ] Does it fail locally AND in CI?
-- [ ] Does it fail in isolation or only in full suite?
+- [ ] Can trigger reliably (>3 times)?
+- [ ] Exact steps documented?
+- [ ] Same in CI AND local?
+- [ ] Minimal input that fails?
 
-### Step 1.3: Examine Recent Changes
+### Step 1.3: Git Archaeology
 
 ```bash
-# What changed recently?
-git log --oneline -20
+# Recent changes to file
+git log --oneline -10 -- path/to/file.ts
 
-# What changed in the failing file?
-git log -p -- path/to/failing.test.ts
+# What changed in this commit?
+git show <commit> --stat
 
-# Git bisect to find the breaking commit
+# Find breaking commit (if regression)
 git bisect start
 git bisect bad HEAD
-git bisect good <last-known-good-commit>
+git bisect good <known-good-commit>
+git bisect run npm test
 ```
 
-### Step 1.4: Gather Diagnostic Evidence
+### Step 1.4: Dynamic Slicing (Advanced)
 
-| Evidence Type | How to Collect |
-|---------------|----------------|
-| Screenshots | CI artifacts, local capture |
-| Console logs | `console.log` or debugger |
-| Network requests | DevTools Network tab |
-| Database state | Query before/after test |
+Identify only code that contributed to failure:
+
+```
+Concept: Dynamic Slice = minimal code path causing bug
+
+Techniques:
+1. Start from failure point
+2. Trace backwards through stack
+3. Include only variables that affected failure
+4. Ignore unrelated code
+```
 
 ---
 
 ## Phase 2: Pattern Analysis
 
-### Step 2.1: Locate Working Examples
-
-| Aspect | Working Code | Failing Code | Difference |
-|--------|--------------|--------------|------------|
-| Input | [value] | [value] | [diff] |
-| State | [value] | [value] | [diff] |
-| Timing | [value] | [value] | [diff] |
-
-### Step 2.2: Test Failure Pattern Library
+### Step 2.1: Failure Pattern Library
 
 | Pattern | Likely Cause | Quick Check |
 |---------|--------------|-------------|
-| `Expected X but got Y` | Off-by-one, wrong return | Print actual value |
-| `Cannot read property 'x' of undefined` | Missing null check, async timing | Trace undefined source |
-| `Timeout exceeded` | Async not completing, infinite loop | Log each async step |
-| `Mock not called` | Wrong module, different params | Log actual mock calls |
-| `Element not found` | UI changed, selector outdated | Check screenshot |
-| `Works locally, fails CI` | Environment difference | Compare environments |
+| `Expected X got Y` | Off-by-one, wrong value | Print actual |
+| `Cannot read prop of undefined` | Missing null guard | Trace source |
+| `Timeout exceeded` | Async never resolved | Log async steps |
+| `Mock not called` | Wrong params/module | Log actual calls |
+| `Element not found` | Selector stale | Check DOM snapshot |
+| `Works local, fails CI` | Env difference | Compare configs |
+| `Flaky: sometimes passes` | Race condition | Add delays |
+| `Memory leak` | Unreleased reference | Heap snapshot |
+
+### Step 2.2: Compare Working vs Failing
+
+| Aspect | Working | Failing | Delta |
+|--------|---------|---------|-------|
+| Input | ? | ? | ? |
+| State | ? | ? | ? |
+| Config | ? | ? | ? |
+| Timing | ? | ? | ? |
+
+### Step 2.3: LLM-Assisted Analysis
+
+Use AI to accelerate pattern recognition:
+
+```
+Prompt: "Analyze this stack trace and suggest likely root causes:
+[paste full error]"
+```
+
+**Valid AI suggestions with:**
+- Manual verification
+- Small test case
+- Not just accepting at face value
 
 ---
 
@@ -136,54 +233,138 @@ git bisect good <last-known-good-commit>
 ### Hypothesis Template
 
 ```markdown
-### Hypothesis #1
+### Hypothesis #N
+
 **Statement:** "The error occurs because [specific reason]"
-**Test:** [How to verify - minimal test]
-**Expected if true:** [What we'd see]
-**Result:** [CONFIRMED / DISPROVEN]
-**New information:** [What we learned]
+
+**Evidence:**
+- [fact 1 supporting]
+- [fact 2 supporting]
+
+**Test:** [minimal test to verify]
+
+**Expected if true:** [specific observable]
+
+**Result:** [CONFIRMED / DISPROVEN / INCONCLUSIVE]
+
+**New information:** [what we learned]
 ```
 
-### Rules for Hypothesis Testing
+### Hypothesis Testing Log
+
+| # | Hypothesis | Test | Result | Conclusion |
+|---|------------|------|--------|------------|
+| 1 | | | ✓/✗ | |
+| 2 | | | ✓/✗ | |
+| 3 | | | ✓/✗ | |
+
+### Rules
 
 1. Test ONE hypothesis at a time
 2. Make minimal changes to test
-3. Document results before moving on
-4. If hypothesis fails, update understanding
+3. Document BEFORE moving on
+4. If disproven, update mental model
 
-### Debugging Log
+### Time Boxing
 
-| # | Hypothesis | Test Method | Result | Conclusion |
-|---|------------|-------------|--------|------------|
-| 1 | [guess] | [how] | ✓/✗ | [learned] |
-| 2 | [guess] | [how] | ✓/✗ | [learned] |
+```
+Set explicit time limits:
+- Hypothesis testing: 15 min max
+- If no progress: take a break
+- After 3 failed attempts: consult colleague
+```
 
 ---
 
 ## Phase 4: Implementation
 
-### Step 4.1: Create Failing Test Case
+### Step 4.1: Create Reproduction Test
 
 ```javascript
-// Before fixing, capture the bug behavior
-it('should handle null input correctly', () => {
-  const result = processInput(null);
-  expect(result).toBeDefined(); // Currently throws
+// FIRST: Write test that fails due to bug
+it('should handle edge case X', () => {
+  const result = process(X);
+  expect(result).toBe(expected); // Currently throws/fails
 });
 ```
 
-### Step 4.2: Implement Minimal Fix
+**Why first?** Ensures bug is fixed, not just masked
 
-- Change only what's necessary
-- Preserve all existing behavior
-- No refactoring during fix
+### Step 4.2: Minimal Fix
 
-### Step 4.3: Verify
+```javascript
+// Change ONLY what's necessary
+// NO refactoring
+// NO adding features
+// JUST fix the bug
+```
+
+### Step 4.3: Verification Gates
 
 ```bash
-npm test -- --grep "fixed test"  # Specific
-npm test -- path/to/module/      # Related
-npm test                          # Full suite
+# 1. Unit tests
+npm test -- --grep "related"
+
+# 2. Coverage gate
+npm run test -- --coverage
+# Must cover >80% of CHANGED code
+
+# 3. Mutation testing (recommended)
+npx stryker run
+# Must kill >90% of mutants
+
+# 4. Full suite
+npm test
+```
+
+---
+
+## 📁 Directory Structure
+
+```
+test-driven-debugging/
+├── SKILL.md
+├── references/
+│   └── patterns/
+│       └── failure-patterns.md    # Comprehensive pattern library
+├── examples/
+│   └── scenarios/
+│       └── debugging-scenarios.md # Real-world debugging examples
+├── templates/
+│   ├── hypothesis-template.md     # Hypothesis testing form
+│   └── error-analysis.md         # Error analysis worksheet
+└── scripts/
+    └── bisect-automate.sh        # Git bisect automation
+```
+
+---
+
+## 📖 Reference Files
+
+| Category | Location | Contents |
+|----------|----------|----------|
+| **Patterns** | `references/patterns/` | 20+ failure patterns |
+| **Scenarios** | `examples/scenarios/` | Real debugging cases |
+| **Templates** | `templates/` | Hypothesis, error analysis |
+| **Scripts** | `scripts/` | Automation helpers |
+
+---
+
+## Three-Strike Rule
+
+```
+After THREE failed fix attempts:
+
+STOP. This signals:
+- Wrong hypothesis about root cause
+- Architectural problem
+- Missing information
+
+Actions:
+1. Revert all changes
+2. Take a break (fresh perspective)
+3. Consult another engineer
+4. Consider if it's worth fixing now
 ```
 
 ---
@@ -192,27 +373,49 @@ npm test                          # Full suite
 
 | Thought | Reality | Action |
 |---------|---------|--------|
-| "Let me just try this fix" | Guessing | STOP → Do Phase 1 |
-| "Maybe if I increase timeout" | Masking symptom | Find root cause |
-| "It's probably just flaky" | Assumption | Investigate why |
-| "I'll fix it and test later" | Risky | Test after EVERY change |
+| "Let me try this fix" | Guessing | STOP → Do Phase 1 |
+| "Maybe increase timeout" | Masking symptom | Find root cause |
+| "Probably just flaky" | Assumption | Investigate systematically |
+| "Works on my machine" | Env difference | Compare configurations |
+| "Ship it, tests pass" | Coverage ignored | Run mutation tests |
 
 ---
 
-## Three-Strike Rule
+## Advanced: Causal Debugging
 
+For complex bugs, apply causal debugging principles:
+
+### 1. Deterministic Replay
 ```
-If THREE consecutive fixes fail:
+- Freeze npm versions (--frozen-lockfile)
+- Capture exact input data
+- Record random seeds
+- Note timing/environment
+```
 
-STOP. This signals:
-- Wrong hypothesis
-- Architectural problem
-- Missing information
+### 2. Dynamic Slicing
+```
+- Start from failure point
+- Trace backward through stack
+- Keep only influencing variables
+- Ignore unrelated code
+```
 
-Action:
-1. Revert all changes
-2. Gather more evidence
-3. Consult another engineer
+### 3. Counterfactual Reasoning
+```
+"If we change X, does failure disappear?"
+"Does changing Y have no effect?"
+```
+
+### 4. Property-Based Testing
+```javascript
+// After fix: verify no regressions
+test('handles random inputs', () => {
+  for (let i = 0; i < 1000; i++) {
+    const input = randomInput();
+    expect(validate(input)).toBeDefined();
+  }
+});
 ```
 
 ---
@@ -222,8 +425,8 @@ Action:
 ```
 PHASE 1: ROOT CAUSE
 □ Read FULL error message
-□ Reproduce consistently
-□ Check recent changes
+□ Reproduce deterministically
+□ Check recent changes (git)
 □ Gather evidence
 
 PHASE 2: PATTERN
@@ -239,5 +442,22 @@ PHASE 3: HYPOTHESIS
 PHASE 4: IMPLEMENT
 □ Create failing test
 □ Minimal fix
-□ Verify all tests
+□ Run verification gates:
+  □ All tests pass
+  □ Coverage >80%
+  □ Mutation >90%
+
+NEVER:
+- Guess without evidence
+- Skip verification gates
+- Ship without testing
 ```
+
+---
+
+## Limitations
+
+- Cannot debug without reproducible case
+- Some bugs require specific environment
+- Time-sensitive incidents may need workaround
+- Third-party library bugs require upstream fix
