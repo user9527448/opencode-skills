@@ -8,12 +8,12 @@
 
 | Skill | Purpose | Lines |
 |-------|---------|-------|
-| 🧪 [test-driven-debugging](.opencode/skills/test-driven-debugging/SKILL.md) | Fix failing tests systematically | 232 |
-| 🔒 [code-review-guardian](.opencode/skills/code-review-guardian/SKILL.md) | Comprehensive code review | 307 |
-| 🔧 [safe-refactoring](.opencode/skills/safe-refactoring/SKILL.md) | Risk-free code refactoring | 376 |
+| 🧪 [test-driven-debugging](.opencode/skills/test-driven-debugging/SKILL.md) | Fix failing tests systematically | 463 |
+| 🔒 [code-review-guardian](.opencode/skills/code-review-guardian/SKILL.md) | Comprehensive code review | 217 |
+| 🔧 [safe-refactoring](.opencode/skills/safe-refactoring/SKILL.md) | Risk-free code refactoring | 274 |
 | 🚀 [code-complexity-optimizer](.opencode/skills/code-complexity-optimizer/SKILL.md) | Algorithm complexity optimization | 357 |
-| 📁 [skill-structure-organizer](.opencode/skills/skill-structure-organizer/SKILL.md) | Restructure skills to modular format | 220 |
-| 💰 [tokensaver](.opencode/skills/tokensaver/SKILL.md) | Context optimization strategies | 160 |
+| 📁 [skill-structure-organizer](.opencode/skills/skill-structure-organizer/SKILL.md) | Restructure skills to modular format | 417 |
+| 💰 [tokensaver](.opencode/skills/tokensaver/SKILL.md) | Context optimization strategies | 253 |
 
 ## Quick Start
 
@@ -48,9 +48,9 @@ Skills are **guidance documents** loaded into OpenCode's context. They tell the 
 ┌─────────────────────────────────────────────────────────┐
 │  User: "My test is failing, help me fix it"             │
 │                                                         │
-│  OpenCode: Loads test-driven-debugging skill            │
-│            → Now knows the systematic debugging process  │
-│            → Follows: READ → RUN → LOG → FIX → VERIFY    │
+│  OpenCode: Loads test-driven-debugging skill           │
+│            → Now knows the systematic debugging process │
+│            → Follows: ROOT CAUSE → PATTERN → HYPOTHESIS│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -88,12 +88,17 @@ skill({ name: "tokensaver" })
 ### 🧪 test-driven-debugging
 
 ```
-Protocol:
-1. READ test → Understand what it's testing
-2. RUN test → Isolate the failure
-3. LOG hypotheses → Systematic investigation
-4. FIX minimal → Smallest possible change
-5. VERIFY all → No regressions
+Four Phases:
+1. ROOT CAUSE → Read error, reproduce, check git, gather evidence
+2. PATTERN → Find working examples, match pattern library
+3. HYPOTHESIS → Form one hypothesis, test minimally
+4. IMPLEMENT → Create failing test, minimal fix, verification gates
+
+Key Features:
+- Causal debugging principles
+- Verification gates (coverage >80%, mutation >90%)
+- Deterministic replay
+- Dynamic slicing
 ```
 
 **When to use:** Any test is failing
@@ -101,13 +106,16 @@ Protocol:
 ### 🔒 code-review-guardian
 
 ```
-Dimensions (in order):
-1. Security → SQL injection, XSS, secrets
-2. Correctness → Logic, edge cases, errors
-3. Performance → N+1, memory, blocking
-4. Maintainability → Names, complexity, DRY
-5. Testing → Coverage, edge cases
-6. Documentation → APIs, complex logic
+9 Review Dimensions (in order):
+1. 🔒 Security → OWASP Top 10, vulnerabilities
+2. 🎯 Correctness → Logic, edge cases, errors
+3. 🏗️ Architecture → SOLID, design patterns
+4. ⚡ Performance → N+1, memory, algorithms
+5. 🧹 Maintainability → Naming, complexity, DRY
+6. 🔄 Concurrency → Thread safety, race conditions
+7. ♿ Accessibility → WCAG 2.1, ARIA
+8. 🧪 Testing → Coverage, test quality
+9. 📚 Documentation → JSDoc, comments
 ```
 
 **When to use:** Reviewing PRs or code
@@ -115,11 +123,18 @@ Dimensions (in order):
 ### 🔧 safe-refactoring
 
 ```
+Five Phases:
+1. ASSESS → Understand code, measure metrics
+2. PREPARE → Checklist, define scope
+3. PLAN → Choose refactoring type
+4. EXECUTE → Loop: change → test → commit
+5. VERIFY → Full test suite, push to CI
+
 Principles:
-1. GREEN → Tests must pass before starting
-2. SMALL → One tiny change at a time
-3. VERIFY → Run tests after each change
-4. COMMIT → Checkpoint frequently
+- GREEN → Tests must pass before starting
+- SMALL → One tiny change at a time
+- VERIFY → Run tests after each change
+- COMMIT → Checkpoint frequently
 ```
 
 **When to use:** Improving code structure
@@ -145,13 +160,14 @@ Optimization strategies:
 ### 📁 skill-structure-organizer
 
 ```
-Process:
+Seven Phases:
 1. ANALYZE → Count lines, identify extraction targets
 2. CREATE → mkdir references/ examples/ scripts/
 3. EXTRACT → Languages, paradigms, examples to subdirs
 4. UPDATE → Add metadata.references, reduce SKILL.md
 5. DOCUMENT → Create README.md
 6. VERIFY → Check all checklists
+7. LOCALIZATION → Add bilingual support (optional)
 
 When to restructure:
 - SKILL.md > 500 lines
@@ -172,6 +188,39 @@ Strategies:
 ```
 
 **When to use:** Approaching token limits
+
+## Modular Structure
+
+Several skills have been restructured to modular format:
+
+```
+.opencode/skills/
+├── test-driven-debugging/
+│   ├── SKILL.md
+│   ├── references/patterns/
+│   ├── examples/scenarios/
+│   ├── templates/
+│   └── scripts/
+├── code-review-guardian/
+│   ├── SKILL.md
+│   ├── references/dimensions/
+│   ├── examples/scenarios/
+│   ├── templates/
+│   └── scripts/
+├── safe-refactoring/
+│   ├── SKILL.md
+│   ├── references/catalog/
+│   ├── references/smells/
+│   ├── examples/scenarios/
+│   └── templates/
+└── code-complexity-optimizer/
+    ├── SKILL.md
+    ├── references/languages/
+    ├── references/paradigms/
+    ├── examples/
+    ├── templates/
+    └── scripts/
+```
 
 ## Related Projects
 
