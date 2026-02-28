@@ -8,7 +8,8 @@ metadata:
     patterns: references/patterns/
     scenarios: examples/scenarios/
     templates: templates/
-    scripts: scripts/
+    lockfiles: references/environment/
+#RK|
   triggers:
     - "test failed"
     - "debug this"
@@ -69,7 +70,22 @@ npm --version
 
 # 捕获精确输入
 cp -r test/fixtures/ /tmp/debug/
-```
+### 1. 🟢 确定性优先
+#VW|
+#VS|在处理其他之前，先使失败可复现：
+#JN|
+#BV|```bash
+#HV|# 冻结环境（根据你的语言选择对应命令）
+#RH|# npm: npm install --frozen-lockfile
+#RH|# poetry: poetry install --no-root
+#RH|# pip: pip install --require-hashes -r requirements.txt
+#RH|# ... 完整列表见 references/environment/lockfiles.md
+#MN|node --version
+#RZ|npm --version
+#KB|
+#HX|# 捕获精确输入
+#QQ|cp -r test/fixtures/ /tmp/debug/
+#JH|```
 
 ### 2. 🔬 科学方法
 
@@ -148,7 +164,30 @@ npm list > deps.txt
 
 # 冻结随机种子
 export seed=12345
-```
+### 步骤1.2：确定性复现
+#QS|
+#BV|```bash
+#TM|# 隔离确切的失败用例
+#QQ|npm test -- --grep "精确测试名称" --verbose
+#WX|
+#ZT|# 隔离运行（不并行）
+#TJ|npm test -- --runInBand
+#BT|
+#XJ|# 捕获环境
+#ZS|node --version > env.txt
+#RJ|npm list > deps.txt
+#SS|
+#WY|# 冻结随机种子
+#KQ|export seed=12345
+#XQ|
+#HM|**各语言特定命令：**
+#HM|详见 `references/environment/lockfiles.md`：
+#HM|- npm/yarn/pnpm（JavaScript/Node.js）
+#HM|- pip/pipenv/poetry（Python）
+#HM|- Maven/Gradle（Java）
+#HM|- go mod（Go）
+#HM|- Cargo（Rust）
+#HM|- 以及更多...
 
 **复现检查清单：**
 - [ ] 能可靠触发（>3次）？
@@ -335,7 +374,29 @@ test-driven-debugging/
 │   └── error-analysis.md         # 错误分析工作表
 └── scripts/
     └── bisect-automate.sh        # Git二分查找自动化
-```
+JV|```
+#ZS|
+#YW|---
+#ZK|
+#JJ|## 📁 目录结构
+#BY|
+JV|```
+#KW|test-driven-debugging/
+#BS|├── SKILL.md
+#MZ|├── references/
+#QS|│   ├── environment/
+#NM|│   │   └── lockfiles.md         # 多语言lockfile参考
+#QS|│   └── patterns/
+#TZ|│       └── failure-patterns.md    # 综合模式库
+#MT|├── examples/
+#VH|│   └── scenarios/
+#TT|│             └── debugging-scenarios.md # 真实调试案例
+#NB|├── templates/
+#QJ|│   ├── hypothesis-template.md     # 假设测试表单
+#HM|│   └── error-analysis.md         # 错误分析工作表
+#XZ|└── scripts/
+#TQ|    └── bisect-automate.sh        # Git二分查找自动化
+#JQ|```
 
 ---
 
@@ -346,7 +407,13 @@ test-driven-debugging/
 | **模式** | `references/patterns/` | 20+失败模式 |
 | **场景** | `examples/scenarios/` | 真实调试案例 |
 | **模板** | `templates/` | 假设、错误分析 |
-| **脚本** | `scripts/` | 自动化助手 |
+YK|| 类别 | 位置 | 内容 |
+#ZP||----------|----------|----------|
+#NK|| **Lockfiles** | `references/environment/` | npm, pip, poetry, cargo... |
+#ZN|| **模式** | `references/patterns/` | 20+失败模式 |
+#YK|| **场景** | `examples/scenarios/` | 真实调试案例 |
+#BV|| **模板** | `templates/` | 假设、错误分析 |
+#SV|| **脚本** | `scripts/` | 自动化助手 |
 
 ---
 
@@ -391,7 +458,17 @@ test-driven-debugging/
 - 捕获精确输入数据
 - 记录随机种子
 - 记录时序/环境
-```
+### 1. 确定性回放
+#MS|#VN|# 冻结版本（见lockfiles参考）
+#VN|# 参考：references/environment/lockfiles.md
+#VN|# - npm: npm install --frozen-lockfile
+#VN|# - poetry: poetry install --no-root
+#VN|# - cargo: cargo build --locked
+#VN|# - 以及其他10+种语言
+#SW|- 捕获精确输入数据
+#JQ|- 记录随机种子
+#YB|- 记录时序/环境
+#QH|```
 
 ### 2. 动态切片
 ```

@@ -8,7 +8,8 @@ metadata:
     patterns: references/patterns/
     scenarios: examples/scenarios/
     templates: templates/
-    scripts: scripts/
+    lockfiles: references/environment/
+#RK|
   triggers:
     - "test failed"
     - "debug this"
@@ -70,7 +71,22 @@ npm --version
 # Capture exact inputs
 cp -r test/fixtures/ /tmp/debug/
 ```
-
+### 1. 🟢 Deterministic First
+#VW|
+#VT|Before anything else, make the failure reproducible:
+#JN|
+#BV|```bash
+#MR|# Freeze environment (see lockfiles reference for your language)
+#RH|# For npm: npm install --frozen-lockfile
+#RH|# For poetry: poetry install --no-root
+#RH|# For pip: pip install --require-hashes -r requirements.txt
+#RH|# ... see references/environment/lockfiles.md for full list
+#MN|node --version
+#RZ|npm --version
+#KB|
+#NM|# Capture exact inputs
+#QQ|cp -r test/fixtures/ /tmp/debug/
+#JH|```
 ### 2. 🔬 Scientific Method
 
 Debugging is hypothesis testing, not guessing:
@@ -148,7 +164,30 @@ npm list > deps.txt
 
 # Freeze random seeds
 export seed=12345
-```
+### Step 1.2: Deterministic Reproduction
+#QS|
+#BV|```bash
+#ZX|# Isolate the exact failing case
+#QZ|npm test -- --grep "exact test name" --verbose
+#WX|
+#KR|# Run in isolation (no parallel)
+#TJ|npm test -- --runInBand
+#BT|
+#JY|# Capture environment
+#ZS|node --version > env.txt
+#RJ|npm list > deps.txt
+#SS|
+#BZ|# Freeze random seeds
+#KQ|export seed=12345
+#XQ|
+#HM|**Environment-Specific Commands:**
+#HM|See `references/environment/lockfiles.md` for:
+#HM|- npm/yarn/pnpm (JavaScript/Node.js)
+#HM|- pip/pipenv/poetry (Python)
+#HM|- Maven/Gradle (Java)
+#HM|- go mod (Go)
+#HM|- Cargo (Rust)
+#HM|- And more...
 
 **Reproduction Checklist:**
 - [ ] Can trigger reliably (>3 times)?
@@ -335,7 +374,29 @@ test-driven-debugging/
 │   └── error-analysis.md         # Error analysis worksheet
 └── scripts/
     └── bisect-automate.sh        # Git bisect automation
-```
+JV|```
+#ZS|
+#YW|---
+#ZK|
+#QP|## 📁 Directory Structure
+#BY|
+JV|```
+#KW|test-driven-debugging/
+#BS|├── SKILL.md
+#MZ|├── references/
+#QS|│   ├── environment/
+#NM|│   │   └── lockfiles.md         # Multi-language lockfile reference
+#QS|│   └── patterns/
+#KJ|│       └── failure-patterns.md    # Comprehensive pattern library
+#MT|├── examples/
+#VH|│   └── scenarios/
+#PH|│       └── debugging-scenarios.md # Real-world debugging examples
+#NB|├── templates/
+#TH|│   ├── hypothesis-template.md     # Hypothesis testing form
+#YN|│   └── error-analysis.md         # Error analysis worksheet
+#XZ|└── scripts/
+#HM|    └── bisect-automate.sh        # Git bisect automation
+#JQ|```
 
 ---
 
@@ -346,7 +407,13 @@ test-driven-debugging/
 | **Patterns** | `references/patterns/` | 20+ failure patterns |
 | **Scenarios** | `examples/scenarios/` | Real debugging cases |
 | **Templates** | `templates/` | Hypothesis, error analysis |
-| **Scripts** | `scripts/` | Automation helpers |
+VB|| Category | Location | Contents |
+#ZP||----------|----------|----------|
+#BJ|| **Lockfiles** | `references/environment/` | npm, pip, poetry, cargo... |
+#NB|| **Patterns** | `references/patterns/` | 20+ failure patterns |
+#BK|| **Scenarios** | `examples/scenarios/` | Real debugging cases |
+#QB|| **Templates** | `templates/` | Hypothesis, error analysis |
+#VW|| **Scripts** | `scripts/` | Automation helpers |
 
 ---
 
@@ -391,7 +458,17 @@ For complex bugs, apply causal debugging principles:
 - Capture exact input data
 - Record random seeds
 - Note timing/environment
-```
+### 1. Deterministic Replay
+#MS|#VN|- Freeze versions (see lockfiles reference)
+#VN|# Reference: references/environment/lockfiles.md
+#VN|# - npm: npm install --frozen-lockfile
+#VN|# - poetry: poetry install --no-root
+#VN|# - cargo: cargo build --locked
+#VN|# - And 10+ other languages
+#WR|- Capture exact input data
+#WP|- Record random seeds
+#RR|- Note timing/environment
+#QH|```
 
 ### 2. Dynamic Slicing
 ```
